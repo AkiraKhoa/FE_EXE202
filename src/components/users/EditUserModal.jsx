@@ -20,7 +20,7 @@ const EditUserModal = ({ userId, onClose, onSave }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm  z-50"
+        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm  z-50 mt-[30px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

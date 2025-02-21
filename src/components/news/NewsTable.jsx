@@ -7,7 +7,16 @@ const newsData = [
 	{ id: 1, title: "Breaking News", content: "Important update on global policies.", type: "Politics", url: "news/breaking-news", createdDate: "2024-01-10", lastEdited: "" },
 	{ id: 2, title: "Tech Innovations", content: "New AI technology is emerging.", type: "Technology", url: "news/tech-innovations", createdDate: "2024-01-08", lastEdited: "2024-01-12" },
 	{ id: 3, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
-];
+	{ id: 4, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 5, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 6, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 7, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 8, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 9, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 10, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 11, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+	{ id: 12, title: "Sports Update", content: "Team A won the championship.", type: "Sports", url: "news/sports-update", createdDate: "2024-02-05", lastEdited: "" },
+ ];
 
 const NewsTable = () => {
 	const [searchTerm, setSearchTerm] = useState("");
