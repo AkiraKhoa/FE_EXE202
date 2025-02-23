@@ -20,13 +20,13 @@ const EditNewModal = ({ newsId, onClose, onSave }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50 pt-10"
+        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50 pt-5"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className="bg-gray-800 text-gray-100 rounded-xl p-6 w-[400px] shadow-2xl border border-gray-700 relative "
+          className="bg-gray-800 text-gray-100 rounded-xl p-6 w-[400px] shadow-2xl border border-gray-700 relative mb-24 "
           initial={{ y: 80, opacity: 0, scale: 0.9 }}
           animate={{ y: 30, opacity: 1, scale: 1 }}
           exit={{ y: 50, opacity: 0, scale: 0.9 }}

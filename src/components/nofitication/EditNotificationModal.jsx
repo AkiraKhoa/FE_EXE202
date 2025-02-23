@@ -26,7 +26,7 @@ const EditNotificationModal = ({ notificationId, onClose, onSave }) => {
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className="bg-gray-800 text-gray-100 rounded-xl p-6 w-[400px] shadow-2xl border border-gray-700 relative"
+          className="bg-gray-800 text-gray-100 rounded-xl p-6 w-[400px] shadow-2xl border border-gray-700 relative mb-40 "
           initial={{ y: 80, opacity: 0, scale: 0.9 }}
           animate={{ y: 30, opacity: 1, scale: 1 }}
           exit={{ y: 50, opacity: 0, scale: 0.9 }}
