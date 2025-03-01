@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
 const LoginForm = ({ setUser }) => {
-  // 🔹 Nhận setUser từ App.js
-  const [formData, setFormData] = useState({ username: "", password: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" }); 
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -16,30 +16,38 @@ const LoginForm = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5146/api/auth/login",
-        formData
-      );
-      const token = response.data.token;
-      localStorage.setItem("token", token);
+      const response = await axios.post("http://localhost:5146/api/auth/login", formData);
 
-      const decoded = jwt_decode(token);
-      const role = decoded.role;
+      if (response.data.token && response.data.token.result) {
+        const token = response.data.token.result;
+        localStorage.setItem("token", token);
 
-      localStorage.setItem("role", role);
+        // 🔹 Giải mã token
+        const decoded = jwtDecode(token);
+        const role =
+          decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
-      // Redirect based on role
-      if (role === "Admin") {
-        navigate("/dashboard");
-      } else if (role === "MARKETANALIZER") {
-        navigate("/news");
+        localStorage.setItem("role", role);
+        setUser({ email: formData.email, role });
+
+        // 🔹 Điều hướng theo role
+        if (role === "Admin") {
+          navigate("/dashboard");
+        } else if (role === "MARKETANALIZER") {
+          navigate("/news");
+        } else {
+          setError("Your account is unauthorized.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+        }
       } else {
-        // setError("Your account is unauthorize. Web is for Admin and Staff only!");
-        navigate("/login"); // Redirect unauthorized users
+        throw new Error("Invalid token structure");
       }
     } catch (error) {
       console.error(error);
-      setError("Invalid username or password");
+      setError(
+        error.response?.data || "Invalid username or password"
+      );
     }
   };
 
@@ -51,17 +59,15 @@ const LoginForm = ({ setUser }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">
-          Login
-        </h2>
+        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">Login</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-1">Username</label>
+            <label className="block text-gray-300 mb-1">Email</label>
             <input
-              type="text"
-              name="username"
-              value={formData.username}
+              type="email"
+              name="email" // 🔹 Đổi thành email thay vì username
+              value={formData.email}
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
