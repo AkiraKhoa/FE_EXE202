@@ -1,18 +1,30 @@
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { useUserStats } from "../context/UserStatsContext";
 
 const COLORS = ["#10B981", "#D1D5DB"]; // Màu xanh cho subscription, màu xám cho non-subscription
 
-const totalUsers = 152845;
-const subscriptionUsers = 38520;
-const nonSubscriptionUsers = totalUsers - subscriptionUsers;
+// const totalUsers = 152845;
+// const subscriptionUsers = 38520;
+// const nonSubscriptionUsers = totalUsers - subscriptionUsers;
 
-const subscriptionData = [
-  { name: "Subscription", value: subscriptionUsers },
-  { name: "Non-Subscription", value: nonSubscriptionUsers },
-];
+// const subscriptionData = [
+//   { name: "Subscription", value: subscriptionUsers },
+//   { name: "Non-Subscription", value: nonSubscriptionUsers },
+// ];
 
 const SubscriptionRatioChart = () => {
+  const { stats, loading, error } = useUserStats();
+
+  if (loading) return <div className="text-gray-100">Loading...</div>;
+  if (error) return <div className="text-red-500">Error: {error}</div>;
+
+  const subscriptionData = [
+    { name: "Subscription", value: stats.subscriptionUsers },
+    { name: "Non-Subscription", value: stats.nonSubscriptionUsers },
+  ];
+
+// const SubscriptionRatioChart = ({ stats }) => {
   return (
     <motion.div
       className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700"

@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import axios from "axios";
 
-const mockUsers = [
-  { username: "a", password: "a", role: "admin" },
-  { username: "b", password: "b", role: "staff" },
-];
-
-const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
+const LoginForm = ({ setUser }) => {
+  // 🔹 Nhận setUser từ App.js
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -16,23 +13,32 @@ const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const foundUser = mockUsers.find(
-      (u) => u.username === formData.username && u.password === formData.password
-    );
+    try {
+      const response = await axios.post(
+        "http://localhost:5146/api/auth/login",
+        formData
+      );
+      const token = response.data.token;
+      localStorage.setItem("token", token);
 
-    if (foundUser) {
-      localStorage.setItem("user", JSON.stringify(foundUser));
-      setUser(foundUser); // 🔹 Cập nhật user ngay lập tức
-      
-      // 🔹 Điều hướng theo role
-      if (foundUser.role === "admin") {
-        navigate("/"); // Admin → Dashboard
+      const decoded = jwt_decode(token);
+      const role = decoded.role;
+
+      localStorage.setItem("role", role);
+
+      // Redirect based on role
+      if (role === "Admin") {
+        navigate("/dashboard");
+      } else if (role === "MARKETANALIZER") {
+        navigate("/news");
       } else {
-        navigate("/news"); // Staff → News
+        // setError("Your account is unauthorize. Web is for Admin and Staff only!");
+        navigate("/login"); // Redirect unauthorized users
       }
-    } else {
+    } catch (error) {
+      console.error(error);
       setError("Invalid username or password");
     }
   };
@@ -45,7 +51,9 @@ const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">Login</h2>
+        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">
+          Login
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -72,7 +80,9 @@ const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
             />
           </div>
 
-          {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+          {error && (
+            <div className="text-red-500 text-center mb-4">{error}</div>
+          )}
 
           <motion.button
             whileHover={{ scale: 1.05 }}
