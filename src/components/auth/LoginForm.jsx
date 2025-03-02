@@ -16,7 +16,7 @@ const LoginForm = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5146/api/auth/login", formData);
+      const response = await axios.post(`https://localhost:7142/api/auth/login`, formData);
 
       if (response.data.token && response.data.token.result) {
         const token = response.data.token.result;

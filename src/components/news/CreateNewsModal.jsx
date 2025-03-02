@@ -1,54 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import axios from "axios";
 
-const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
-  const [newsData, setNewsData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+const CreateNewsModal = ({ onClose, onSave }) => {
+  const [newsData, setNewsData] = useState({
+    title: "",
+    content: "",
+    type: "",
+    url: "",
+    createdDate: new Date().toISOString().split('T')[0]
+  });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    // Find the news item in the existing data
-    const currentNews = allNews.find(news => news.id === newsId);
-    
-    if (currentNews) {
-      setNewsData(currentNews);
-      setIsLoading(false);
-    } else {
-      // If not found locally, fetch from API
-      fetchNewsById();
-    }
-  }, [newsId]);
-
-  const fetchNewsById = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No authentication token found");
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}${import.meta.env.VITE_API_PREFIX}/news/${newsId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      
-      setNewsData(response.data);
-      setError(null);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch news details");
-      console.error("Error fetching news:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setNewsData({ ...newsData, [e.target.name]: e.target.value });
@@ -57,55 +22,35 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      onSave(newsData);
+      setError(null);
+      
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No authentication token found");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const response = await axios.post(
+        `${import.meta.env.VITE_SERVER_URL}${import.meta.env.VITE_API_PREFIX}/news`,
+        newsData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+        }
+      );
+      
+      onSave(response.data);
+      onClose();
     } catch (err) {
-      setError("Failed to save changes");
-      console.error("Error saving changes:", err);
+      setError(err.response?.data?.message || "Failed to create news");
+      console.error("Error creating news:", err);
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <AnimatePresence>
-        <motion.div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="bg-gray-800 rounded-xl p-8 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-300">Loading...</span>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
-  if (error || !newsData) {
-    return (
-      <AnimatePresence>
-        <motion.div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="bg-gray-800 rounded-xl p-8">
-            <div className="text-red-400 mb-4">{error || "News not found"}</div>
-            <button
-              onClick={onClose}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
 
   return (
     <AnimatePresence>
@@ -126,8 +71,8 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
             <X size={22} />
           </button>
 
-          <h2 className="text-xl font-semibold mb-5 text-white">Edit News</h2>
-
+          <h2 className="text-xl font-semibold mb-5 text-white">Create News</h2>
+          
           {error && (
             <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm">
               {error}
@@ -138,7 +83,7 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
           <input
             type="text"
             name="title"
-            value={newsData.title || ""}
+            value={newsData.title}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
@@ -146,7 +91,7 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
           <label className="block text-gray-300 mt-4 mb-1">Content</label>
           <textarea
             name="content"
-            value={newsData.content || ""}
+            value={newsData.content}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
             rows="4"
@@ -156,7 +101,7 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
           <input
             type="text"
             name="type"
-            value={newsData.type || ""}
+            value={newsData.type}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
@@ -165,7 +110,7 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
           <input
             type="text"
             name="url"
-            value={newsData.url || ""}
+            value={newsData.url}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
@@ -174,16 +119,7 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
           <input
             type="date"
             name="createdDate"
-            value={newsData.createdDate || ""}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          />
-
-          <label className="block text-gray-300 mt-4 mb-1">Last Edited</label>
-          <input
-            type="date"
-            name="lastEdited"
-            value={newsData.lastEdited || ""}
+            value={newsData.createdDate}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
@@ -197,7 +133,7 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
                 : "bg-blue-600 hover:bg-blue-500"
             }`}
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? "Creating..." : "Create News"}
           </button>
         </motion.div>
       </motion.div>
@@ -205,4 +141,4 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
   );
 };
 
-export default EditNewModal;
+export default CreateNewsModal;
