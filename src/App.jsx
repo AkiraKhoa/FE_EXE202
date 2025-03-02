@@ -6,19 +6,22 @@ import NewsPage from "./pages/NewsPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import Sidebar from "./components/common/Sidebar";
 import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role"); // ✅ Dùng role đã lưu từ LoginForm
-    if (token && role) {
-      setUser({ role });
-    } else {
-      setUser(null);
-    }
+    const role = localStorage.getItem("role");
+
+    setUser(token && role ? { role } : null);
+
+    setLoading(false);
   }, []);
+
+  if (loading) return null;
 
   return (
     <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
@@ -38,11 +41,20 @@ function App() {
             </>
           ) : (
             <>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/users" element={<UsersPage />} />
-              <Route path="/news" element={<NewsPage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
-              <Route path="*" element={<Navigate to="/" />} />
+              {/* 📌 Bảo vệ Dashboard: Chỉ Admin vào được */}
+              <Route element={<ProtectedRoute user={user} allowedRoles={["Admin"]} />}>
+                <Route path="/" element={<DashboardPage />} />
+                <Route path="/users" element={<UsersPage />} />
+              </Route>
+
+              {/* 📌 Bảo vệ trang Staff: Chỉ MARKETANALIZER vào được */}
+              <Route element={<ProtectedRoute user={user} allowedRoles={["MARKETANALIZER"]} />}>
+                <Route path="/news" element={<NewsPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+              </Route>
+
+              {/* 📌 Nếu không có quyền, về trang phù hợp */}
+              <Route path="*" element={<Navigate to={user.role === "Admin" ? "/" : "/news"} />} />
             </>
           )}
         </Routes>

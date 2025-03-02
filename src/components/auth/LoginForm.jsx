@@ -16,7 +16,7 @@ const LoginForm = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:5146/api/auth/login", formData);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, formData);
 
       if (response.data.token && response.data.token.result) {
         const token = response.data.token.result;
@@ -32,7 +32,7 @@ const LoginForm = ({ setUser }) => {
 
         // 🔹 Điều hướng theo role
         if (role === "Admin") {
-          navigate("/dashboard");
+          navigate("/");
         } else if (role === "MARKETANALIZER") {
           navigate("/news");
         } else {
