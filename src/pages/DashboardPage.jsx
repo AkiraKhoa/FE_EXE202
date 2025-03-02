@@ -18,8 +18,15 @@ const DashboardPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("No authentication token found");
+          setLoading(false);
+          return;
+        }
+
       try {
-        const response = await fetch("http://localhost:5146/api/user-stats", {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}${import.meta.env.VITE_API_PREFIX}/user-stats`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -45,6 +52,7 @@ const DashboardPage = () => {
       <div className="flex-1 overflow-auto relative z-10">
         <Header title="Dashboard" />
         <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
+        {error && <div className="text-red-500 text-center">{error}</div>}
           <UsersStat /> {/* STATS */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <SubscriptionRatioChart /> {/* CHARTS */}
