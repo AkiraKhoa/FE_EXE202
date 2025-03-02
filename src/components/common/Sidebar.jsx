@@ -21,6 +21,7 @@ const Sidebar = ({ role, setUser }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("role");  // ✅ Xóa role
     setUser(null);
     navigate("/login");
   };

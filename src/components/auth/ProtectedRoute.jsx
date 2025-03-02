@@ -1,15 +1,15 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-const ProtectedRoute = ({ user, allowedRoles, redirectPath }) => {
+const ProtectedRoute = ({ user, allowedRoles }) => {
   if (!user) {
-    return <Navigate to="/login" replace />; // 🔹 Nếu chưa login, chuyển về login
+    return <Navigate to="/login" replace />;
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to={redirectPath} replace />; // 🔹 Nếu role không hợp lệ, chuyển hướng phù hợp
+    return <Navigate to={user.role === "Admin" ? "/" : "/news"} replace />;
   }
 
-  return <Outlet />; // 🔹 Nếu hợp lệ, render component con
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
