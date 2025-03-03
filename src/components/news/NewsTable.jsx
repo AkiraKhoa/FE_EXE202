@@ -100,7 +100,7 @@ const NewsTable = () => {
       return;
     }
 
-    if (!window.confirm("Are you sure you want to delete this news item?")) {
+    if (!window.confirm("Are you sure you want to delete this news?")) {
       return;
     }
 
