@@ -13,11 +13,7 @@ const UsersTable = () => {
   const [editUserId, setEditUserId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = async (search = "") => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -34,8 +30,9 @@ const UsersTable = () => {
             Authorization: `Bearer ${token}`,
           },
           params: {
-            pageSize: 1000 // Get all users
-          }
+            searchTerm: search, // Thêm searchTerm vào params
+            pageSize: 1000, // Get all users
+          },
         }
       );
 
@@ -49,6 +46,22 @@ const UsersTable = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      fetchUsers(searchTerm); // Gọi API với searchTerm hiện tại
+    }
+  };
+
+  // Xử lý thay đổi search term
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
@@ -145,9 +158,14 @@ const UsersTable = () => {
             placeholder="Search users..."
             className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
-            onChange={handleSearch}
+            onChange={handleSearchChange} // Cập nhật searchTerm
+            onKeyDown={handleKeyDown} // Bắt sự kiện nhấn Enter
           />
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <Search
+            className="absolute left-3 top-2.5 text-gray-400 cursor-pointer"
+            size={18}
+            onClick={() => fetchUsers(searchTerm)} // Thêm sự kiện click cho biểu tượng search
+          />
         </div>
       </div>
 

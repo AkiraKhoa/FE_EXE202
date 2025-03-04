@@ -47,9 +47,23 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
     }
   };
 
+  const [emailError, setEmailError] = useState(null);
+
   const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
+      const { name, value } = e.target;
+      setUserData({ ...userData, [name]: value });
+  
+      // Kiểm tra email ngay khi nhập
+      if (name === "email") {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value)) {
+              setEmailError("Please enter a valid email address.");
+          } else {
+              setEmailError(null);
+          }
+      }
   };
+  
 
   const handleSubmit = async () => {
     try {

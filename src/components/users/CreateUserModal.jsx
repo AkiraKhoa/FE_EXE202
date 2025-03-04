@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { CloudCog, X } from "lucide-react";
 import axios from "axios";
 
 const CreateUserModal = ({ onClose, onSave }) => {
@@ -8,21 +8,30 @@ const CreateUserModal = ({ onClose, onSave }) => {
     userName: "",
     email: "",
     password: "",
-    status: "Active",
     subscriptionStatus: "Free",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    setUserData({ ...userData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setUserData({ ...userData, [name]: value });
+
+    // Kiểm tra email ngay khi nhập
+    if (name === "email") {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            setError("Please enter a valid email address.");
+        } else {
+            setError(null);
+        }
+    }
   };
 
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
       setError(null);
-
       const token = localStorage.getItem("token");
       const response = await axios.post(
         `${import.meta.env.VITE_SERVER_URL}/users`,
@@ -31,10 +40,17 @@ const CreateUserModal = ({ onClose, onSave }) => {
       );
 
       onSave(response.data);
+      console.log("User created:", response.data);
       onClose();
+      
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to create user");
-      console.error("Error creating user:", err);
+       // Kiểm tra nếu có nhiều lỗi từ backend
+       const errorMessage = err.response?.data?.error 
+       ? err.response.data.error.split("; ").join("\n")  // Chuyển các lỗi thành dòng mới
+       : "Failed to create user";
+
+     setError(errorMessage);
+     console.error("Error creating user:", err);
     } finally {
       setIsSubmitting(false);
     }
@@ -96,18 +112,6 @@ const CreateUserModal = ({ onClose, onSave }) => {
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
-
-          <label className="block text-gray-300 mt-4 mb-1">Status</label>
-          <select
-            name="status"
-            value={userData.status}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Suspended">Suspended</option>
-          </select>
 
           <label className="block text-gray-300 mt-4 mb-1">
             Subscription Status
