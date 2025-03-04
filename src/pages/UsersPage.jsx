@@ -29,7 +29,7 @@ const UsersPage = () => {
 				<Header title='Users' />
 				<main className='max-w-7xl mx-auto py-6 px-4 lg:px-8'>
 					{/* STATS */}
-					<UsersStat />
+					{/* <UsersStat /> */}
 					{/* CRUD USERS */}
 					<UsersTable />
 				</main>
