@@ -26,9 +26,9 @@ const DashboardPage = () => {
         }
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/user-stats`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/user-stats`, {
           headers: {
-            Authorization: `${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         if (!response.ok) {

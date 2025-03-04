@@ -32,7 +32,7 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}${import.meta.env.VITE_API_PREFIX}/news/${newsId}`,
+        `${import.meta.env.VITE_API_URL}/news/${newsId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -170,23 +170,16 @@ const EditNewModal = ({ newsId, onClose, onSave, allNews }) => {
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
 
-          <label className="block text-gray-300 mt-4 mb-1">Created Date</label>
-          <input
-            type="date"
-            name="createdDate"
-            value={newsData.createdDate || ""}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          />
-
-          <label className="block text-gray-300 mt-4 mb-1">Last Edited</label>
-          <input
-            type="date"
-            name="lastEdited"
-            value={newsData.lastEdited || ""}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          />
+          {error && (
+            <motion.div
+              className="mt-4 text-red-400 text-sm text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {error}
+            </motion.div>
+          )}
 
           <button
             onClick={handleSubmit}

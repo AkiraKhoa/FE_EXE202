@@ -39,7 +39,7 @@ const UserGrowthChart = () => {
             />
             <Line
               type="monotone"
-              dataKey="usersCount"
+              dataKey="userCount"
               stroke="#8B5CF6"
               strokeWidth={2}
               dot={{ fill: "#8B5CF6", strokeWidth: 2, r: 4 }}
