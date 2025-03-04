@@ -13,7 +13,15 @@ const UsersTable = () => {
   const [editUserId, setEditUserId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const fetchUsers = async (search = "") => {
+   // Pagination state
+   const [currentPage, setCurrentPage] = useState(1);
+   const [pageSize, setPageSize] = useState(9);
+   const [totalCount, setTotalCount] = useState(0);
+   const [totalPages, setTotalPages] = useState(0);
+ 
+
+   // Fetch users với pagination và search term
+  const fetchUsers = async (search = "", page = 1, size = pageSize) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -30,14 +38,18 @@ const UsersTable = () => {
             Authorization: `Bearer ${token}`,
           },
           params: {
-            searchTerm: search, // Thêm searchTerm vào params
-            pageSize: 1000, // Get all users
+            searchTerm: search,
+            page: page,
+            pageSize: size,
           },
         }
       );
 
-      console.log("Users data from API:", response.data.items);
+      console.log("Users data from API:", response.data);
       setUsers(response.data.items);
+      setTotalCount(response.data.totalCount);
+      setTotalPages(Math.ceil(response.data.totalCount / size));
+      setCurrentPage(page);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch users");
@@ -47,19 +59,28 @@ const UsersTable = () => {
     }
   };
 
+  // Gọi API khi component mount hoặc searchTerm thay đổi
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    fetchUsers(searchTerm, currentPage);
+  }, [currentPage]);
 
+  // Xử lý khi nhấn Enter
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      fetchUsers(searchTerm); // Gọi API với searchTerm hiện tại
+      setCurrentPage(1); // Reset về trang đầu tiên khi tìm kiếm
+      fetchUsers(searchTerm, 1);
     }
   };
 
   // Xử lý thay đổi search term
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  // Xử lý chuyển trang
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return; // Không cho phép chuyển trang ngoài phạm vi
+    setCurrentPage(newPage);
   };
 
 
@@ -266,7 +287,37 @@ const UsersTable = () => {
           </table>
         </div>
       )}
-
+    {/* Phần pagination */}
+    <div className="flex justify-between items-center mt-6">
+      <div className="text-sm text-gray-400">
+        Showing {(currentPage - 1) * pageSize + 1} to{" "}
+        {Math.min(currentPage * pageSize, totalCount)} of {totalCount} users
+      </div>
+      <div className="flex space-x-2">
+        <button
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`px-4 py-2 rounded-lg ${
+            currentPage === 1
+              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+          }`}
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={`px-4 py-2 rounded-lg ${
+            currentPage === totalPages
+              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+          }`}
+        >
+          Next
+        </button>
+      </div>
+    </div>
       {editUserId && (
         <EditUserModal
           id={editUserId}

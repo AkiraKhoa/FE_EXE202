@@ -31,7 +31,7 @@ const UsersPage = () => {
 					{/* STATS */}
 					{/* <UsersStat /> */}
 					{/* CRUD USERS */}
-					<UsersTable />
+					<UsersTable mt-0/>
 				</main>
 			</div>
 		</UserStatsProvider>
