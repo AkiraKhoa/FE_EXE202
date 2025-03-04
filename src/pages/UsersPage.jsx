@@ -11,7 +11,7 @@ const UsersPage = () => {
 
 	useEffect(() => {
 		// Simulating fetching user stats (replace with actual API call)
-		fetch(`${import.meta.env.VITE_SERVER_URL}${import.meta.env.VITE_API_PREFIX}/user-stats`)
+		fetch(`${import.meta.env.VITE_API_URL}/user-stats`)
 			.then((res) => res.json())
 			.then((data) => {
 				setStats(data);

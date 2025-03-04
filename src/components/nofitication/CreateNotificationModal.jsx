@@ -1,52 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
+import { title } from "framer-motion/client";
 import axios from "axios";
 
-const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) => {
-  const [notificationData, setNotificationData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+const CreateNotificationModal = ({ onClose, onSave }) => {
+  const [notificationData, setNotificationData] = useState({
+    staffId: localStorage.getItem("userId"),
+    title: "",
+    content: "",
+    type: "",
+    createdDate: new Date().toISOString().split("-")[0],
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    const currentNoti = allNotis.find((noti) => noti.id === notificationId);
-
-    if (currentNoti) {
-      setNotificationData(currentNoti);
-      setIsLoading(false);
-    } else {
-      fetchNotiById();
-    }
-  }, [notificationId]);
-
-  const fetchNotiById = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No authentication token found");
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/notification/${notificationId}`,
-        {
-          headers: {
-            Authorization: `${token}`,
-          },
-        }
-      );
-
-      setNotificationData(response.data);
-      setError(null);
-    } catch (error) {
-      setError(err.response?.data?.message || "Failed to fetch news details");
-      console.error("Error fetching news:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     setNotificationData({
@@ -58,62 +26,39 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      onSave(notificationData);
+      setError(null);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No authentication token found");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/notification`,
+        notificationData,
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+
+      onSave(response.data);
+      onClose();
     } catch (err) {
-      setError("Failed to save changes");
-      console.error("Error saving changes:", err);
+      setError(err.response?.data?.message || "Fail to create notification");
+      console.error("Error creating notification: ", err);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <AnimatePresence>
-        <motion.div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50 pt-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="bg-gray-800 rounded-xl p-8 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-            <span className="ml-3 text-gray-300">Loading...</span>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
-  if (error || !notificationData) {
-    return (
-      <AnimatePresence>
-        <motion.div
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          <div className="bg-gray-800 rounded-xl p-8">
-            <div className="text-red-400 mb-4">
-              {error || "Notification not found"}
-            </div>
-            <button
-              onClick={onClose}
-              className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded"
-            >
-              Close
-            </button>
-          </div>
-        </motion.div>
-      </AnimatePresence>
-    );
-  }
-
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50 pt-5"
+        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50 pt-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -133,7 +78,7 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
           </button>
 
           <h2 className="text-xl font-semibold mb-5 text-white">
-            Edit Notification
+            Create Notification
           </h2>
 
           {error && (
@@ -146,7 +91,7 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
           <input
             type="text"
             name="title"
-            value={notificationData.title || ""}
+            value={notificationData.title}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
@@ -167,7 +112,7 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
-
+          
           {error && (
             <motion.div
               className="mt-4 text-red-400 text-sm text-center"
@@ -188,11 +133,12 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
                 : "bg-blue-600 hover:bg-blue-500"
             }`}
           >
-            {isSubmitting ? "Saving..." : "Save Changes"}
+            {isSubmitting ? "Creating..." : "Create Notification"}
           </button>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
 };
-export default EditNotificationModal;
+
+export default CreateNotificationModal;

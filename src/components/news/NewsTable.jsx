@@ -17,6 +17,16 @@ const NewsTable = () => {
     fetchNews();
   }, []);
 
+  const clearError = () => {
+    setTimeout(() => {
+      setError(null);
+    }, 5000); // 5000ms = 5 seconds
+  };
+
+  const dismissError = () => {
+    setError(null);
+  };
+
   const fetchNews = async () => {
     try {
       setLoading(true);
@@ -28,12 +38,10 @@ const NewsTable = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}${
-          import.meta.env.VITE_API_PREFIX
-        }/news`,
+        `${import.meta.env.VITE_API_URL}/news`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
           },
         }
       );
@@ -67,13 +75,11 @@ const NewsTable = () => {
       }
 
       const response = await axios.put(
-        `${import.meta.env.VITE_SERVER_URL}${
-          import.meta.env.VITE_API_PREFIX
-        }/news/${updatedNews.newsId}`,
+        `${import.meta.env.VITE_API_URL}/news/${updatedNews.newsId}`,
         updatedNews,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
             "Content-Type": "application/json",
           },
         }
@@ -86,6 +92,7 @@ const NewsTable = () => {
       setEditNewsId(null);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update news");
+      clearError();
       console.error("Error updating news:", err);
     }
   };
@@ -93,7 +100,7 @@ const NewsTable = () => {
   // Delete news API call
   const handleDelete = async (newsId) => {
 
-    console.log("Attempting to delete news with ID:", newsId); // Add this line
+    console.log("Attempting to delete news with ID:", newsId);
 
     if (!newsId) {
       console.error("Error: newsId is undefined!");
@@ -112,12 +119,10 @@ const NewsTable = () => {
       }
 
       await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}${
-          import.meta.env.VITE_API_PREFIX
-        }/news/${newsId}`,
+        `${import.meta.env.VITE_API_URL}/news/${newsId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
             "Content-Type": "application/json",
           },
         }
@@ -126,16 +131,9 @@ const NewsTable = () => {
       // Remove the deleted item from the news list
       setNews(news.filter((item) => item.newsId !== newsId));
     } catch (err) {
-      console.error("Error deleting news:", err);
-      if (err.response) {
-        console.error("Full error response:", err.response);
-        console.error("Status code:", err.response.status);
-        console.error("Response data:", err.response.data);
-      } else {
-        console.error("No response received. Error details:", err.message);
-      }
-      
       setError(err.response?.data?.message || "Failed to delete news");
+      clearError();
+      console.error("Error deleting news:", err);
     }
     
   };
@@ -182,11 +180,23 @@ const NewsTable = () => {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-900 bg-opacity-40 border border-red-800 rounded text-red-200">
-          Error: {error}
-        </div>
+        <motion.div
+          className="mb-4 p-3 bg-red-900 bg-opacity-40 border border-red-800 rounded text-red-200"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <span>Error: {error}</span>
+          <button
+            onClick={dismissError}
+            className="text-red-200 hover:text-red-100 focus:outline-none"
+          >
+            ×
+          </button>
+        </motion.div>
       )}
-
+      
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

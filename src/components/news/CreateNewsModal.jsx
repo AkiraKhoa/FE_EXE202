@@ -5,13 +5,14 @@ import axios from "axios";
 
 const CreateNewsModal = ({ onClose, onSave }) => {
   const [newsData, setNewsData] = useState({
+    staffId: localStorage.getItem("userId"),
     title: "",
     content: "",
     type: "",
     url: "",
-    createdDate: new Date().toISOString().split('T')[0]
+    createdDate: new Date().toISOString().split("-")[0],
   });
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -23,25 +24,25 @@ const CreateNewsModal = ({ onClose, onSave }) => {
     try {
       setIsSubmitting(true);
       setError(null);
-      
+
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
         setIsSubmitting(false);
         return;
       }
-      
+
       const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}${import.meta.env.VITE_API_PREFIX}/news`,
+        `${import.meta.env.VITE_API_URL}/news`,
         newsData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
+            Authorization: `${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
-      
+
       onSave(response.data);
       onClose();
     } catch (err) {
@@ -67,12 +68,15 @@ const CreateNewsModal = ({ onClose, onSave }) => {
           exit={{ y: 50, opacity: 0, scale: 0.9 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <button className="absolute top-3 right-3 text-gray-400 hover:text-white" onClick={onClose}>
+          <button
+            className="absolute top-3 right-3 text-gray-400 hover:text-white"
+            onClick={onClose}
+          >
             <X size={22} />
           </button>
 
           <h2 className="text-xl font-semibold mb-5 text-white">Create News</h2>
-          
+
           {error && (
             <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm">
               {error}
@@ -115,14 +119,16 @@ const CreateNewsModal = ({ onClose, onSave }) => {
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
 
-          <label className="block text-gray-300 mt-4 mb-1">Created Date</label>
-          <input
-            type="date"
-            name="createdDate"
-            value={newsData.createdDate}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          />
+          {error && (
+            <motion.div
+              className="mt-4 text-red-400 text-sm text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {error}
+            </motion.div>
+          )}
 
           <button
             onClick={handleSubmit}
