@@ -5,7 +5,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 
 const LoginForm = ({ setUser }) => {
-  const [formData, setFormData] = useState({ email: "", password: "" }); 
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -16,7 +16,10 @@ const LoginForm = ({ setUser }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${import.meta.env.VITE_SERVER_URL}/auth/login`, formData);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        formData
+      );
 
       if (response.data.token && response.data.token.result) {
         const token = response.data.token.result;
@@ -25,33 +28,38 @@ const LoginForm = ({ setUser }) => {
         // 🔹 Giải mã token
         const decoded = jwtDecode(token);
         const role =
-          decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+          decoded[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ];
         const userId =
-          decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+          decoded[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          ];
 
-        localStorage.setItem("role", role);
-        localStorage.setItem("userId", userId);
-        setUser({ email: formData.email, role });
+        // Only set user and navigate if role is authorized
+        if (role === "Admin" || role === "MARKETANALIZER") {
+          localStorage.setItem("role", role);
+          localStorage.setItem("userId", userId);
+          setUser({ email: formData.email, role });
 
-        // 🔹 Điều hướng theo role
-        if (role === "Admin") {
-          navigate("/");
-        } else if (role === "MARKETANALIZER") {
-          navigate("/news");
+          if (role === "Admin") {
+            navigate("/");
+          } else if (role === "MARKETANALIZER") {
+            navigate("/news");
+          }
         } else {
-          setError("Your account is unauthorized.");
+          // Clear token and role for unauthorized users
           localStorage.removeItem("token");
           localStorage.removeItem("role");
           localStorage.removeItem("userId");
-        }
-      } else {
-        throw new Error("Invalid token structure");
-      }
+          setError("Your account is unauthorized.");
+        };
+        
+      };
+
     } catch (error) {
       console.error(error);
-      setError(
-        error.response?.data || "Invalid username or password"
-      );
+      setError(error.response?.data || "Invalid username or password");
     }
   };
 
@@ -63,7 +71,9 @@ const LoginForm = ({ setUser }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">Login</h2>
+        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">
+          Login
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">

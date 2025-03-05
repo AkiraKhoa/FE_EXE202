@@ -13,9 +13,15 @@ const NotificationsTable = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editNotificationId, setEditNotificationId] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
-    fetchNoti();
-  }, []);
+    fetchNoti(searchTerm, currentPage);
+  }, [currentPage]);
 
   const clearError = () => {
     setTimeout(() => {
@@ -27,7 +33,23 @@ const NotificationsTable = () => {
     setError(null);
   };
 
-  const fetchNoti = async () => {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      setCurrentPage(1);
+      fetchNoti(searchTerm, 1);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+  };
+
+  const fetchNoti = async (search = "", page = 1, size = pageSize) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -43,12 +65,20 @@ const NotificationsTable = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          params: {
+            searchTerm: search,
+            page: page,
+            pageSize: size,
+          },
         }
       );
       const activeNoti = response.data.items.filter(
         (item) => item.status !== "Deleted"
       );
       setNotifications(activeNoti);
+      setTotalCount(response.data.totalCount);
+      setTotalPages(Math.ceil(response.data.totalCount / size));
+      setCurrentPage(page);
       setError(null);
     } catch (err) {
       setError(err, response?.data?.message || "Fail to fetch notifications");
@@ -176,9 +206,14 @@ const NotificationsTable = () => {
             placeholder="Search notifications..."
             className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
-            onChange={handleSearch1}
+            onChange={handleSearchChange}
+            onKeyDown={handleKeyDown}
           />
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <Search
+            className="absolute left-3 top-2.5 text-gray-400"
+            size={18}
+            onClick={() => fetchNoti(searchTerm)}
+          />
         </div>
       </div>
 
@@ -251,14 +286,18 @@ const NotificationsTable = () => {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
-                          {item.title}
+                        {item.title.length > 18
+                            ? item.title.substring(0, 18) + "..."
+                            : item.title}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
-                          {item.content}
+                          {item.content.length > 35
+                            ? item.content.substring(0, 35) + "..."
+                            : item.content}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -292,6 +331,40 @@ const NotificationsTable = () => {
           </table>
         </div>
       )}
+
+      <div className="flex justify-between items-center mt-6">
+        <div className="text-sm text-gray-400">
+          Showing {(currentPage - 1) * pageSize + 1} to{" "}
+          {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{" "}
+          notifications
+        </div>
+
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === 1
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Previous
+          </button>
+
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === totalPages
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       {/* Edit Notification Modal */}
       {editNotificationId && (

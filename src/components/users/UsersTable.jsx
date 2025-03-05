@@ -32,7 +32,7 @@ const UsersTable = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/users`,
+        `${import.meta.env.VITE_API_URL}/users`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -101,7 +101,7 @@ const UsersTable = () => {
       }
 
       const response = await axios.put(
-        `${import.meta.env.VITE_SERVER_URL}/users/${updatedUser.id}`,
+        `${import.meta.env.VITE_API_URL}/users/${updatedUser.id}`,
         updatedUser,
         {
           headers: {
@@ -135,7 +135,7 @@ const UsersTable = () => {
       }
 
       await axios.delete(
-        `${import.meta.env.VITE_SERVER_URL}/users/${id}`,
+        `${import.meta.env.VITE_API_URL}/users/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

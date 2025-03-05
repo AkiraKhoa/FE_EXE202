@@ -31,9 +31,9 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
     try {
       const token = localStorage.getItem("token");
       console.log("Token:", token);
-      console.log("Fetching user with URL:", `${import.meta.env.VITE_SERVER_URL}/users/${id}`);
+      console.log("Fetching user with URL:", `${import.meta.env.VITE_API_URL}/users/${id}`);
       const response = await axios.get(
-        `${import.meta.env.VITE_SERVER_URL}/users/${id}`,
+        `${import.meta.env.VITE_API_URL}/users/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log("API response:", response.data);

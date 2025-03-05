@@ -34,7 +34,7 @@ const CreateUserModal = ({ onClose, onSave }) => {
       setError(null);
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        `${import.meta.env.VITE_SERVER_URL}/users`,
+        `${import.meta.env.VITE_API_URL}/users`,
         userData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

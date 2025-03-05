@@ -13,9 +13,14 @@ const NewsTable = () => {
   const [editNewsId, setEditNewsId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(9);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
-    fetchNews();
-  }, []);
+    fetchNews(searchTerm, currentPage);
+  }, [currentPage]);
 
   const clearError = () => {
     setTimeout(() => {
@@ -27,7 +32,22 @@ const NewsTable = () => {
     setError(null);
   };
 
-  const fetchNews = async () => {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      setCurrentPage(1);
+      fetchNews(searchTerm, 1);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value.toLowerCase());
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+  };
+  const fetchNews = async (search = "", page = 1, size = pageSize) => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
@@ -37,17 +57,23 @@ const NewsTable = () => {
         return;
       }
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/news`,
-        {
-          headers: {
-            Authorization: `${token}`,
-          },
-        }
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/news`, {
+        headers: {
+          Authorization: `${token}`,
+        },
+        params: {
+          searchTerm: search,
+          page: page,
+          pageSize: size,
+        },
+      });
+      const activeNews = response.data.items.filter(
+        (item) => item.status !== "Deleted"
       );
-      const activeNews = response.data.items.filter(item => item.status !== "Deleted")
-      console.log(activeNews);
       setNews(activeNews);
+      setTotalCount(response.data.totalCount);
+      setTotalPages(Math.ceil(response.data.totalCount / size));
+      setCurrentPage(page);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch news");
@@ -55,10 +81,6 @@ const NewsTable = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value.toLowerCase());
   };
 
   const handleEdit = (newsId) => {
@@ -87,7 +109,9 @@ const NewsTable = () => {
 
       // Update the news list with the updated item
       setNews(
-        news.map((item) => (item.newsId === updatedNews.newsId ? response.data : item))
+        news.map((item) =>
+          item.newsId === updatedNews.newsId ? response.data : item
+        )
       );
       setEditNewsId(null);
     } catch (err) {
@@ -99,7 +123,6 @@ const NewsTable = () => {
 
   // Delete news API call
   const handleDelete = async (newsId) => {
-
     console.log("Attempting to delete news with ID:", newsId);
 
     if (!newsId) {
@@ -118,15 +141,12 @@ const NewsTable = () => {
         return;
       }
 
-      await axios.delete(
-        `${import.meta.env.VITE_API_URL}/news/${newsId}`,
-        {
-          headers: {
-            Authorization: `${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axios.delete(`${import.meta.env.VITE_API_URL}/news/${newsId}`, {
+        headers: {
+          Authorization: `${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       // Remove the deleted item from the news list
       setNews(news.filter((item) => item.newsId !== newsId));
@@ -135,7 +155,6 @@ const NewsTable = () => {
       clearError();
       console.error("Error deleting news:", err);
     }
-    
   };
 
   // Create news handler
@@ -173,9 +192,14 @@ const NewsTable = () => {
             placeholder="Search news..."
             className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
-            onChange={handleSearch}
+            onChange={handleSearchChange}
+            onKeyDown={handleKeyDown}
           />
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          <Search
+            className="absolute left-3 top-2.5 text-gray-400"
+            size={18}
+            onClick={() => fetchNews(searchTerm)}
+          />
         </div>
       </div>
 
@@ -196,7 +220,7 @@ const NewsTable = () => {
           </button>
         </motion.div>
       )}
-      
+
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
@@ -253,17 +277,21 @@ const NewsTable = () => {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
-                          {item.title}
+                        {item.title.length > 18
+                            ? item.title.substring(0, 18) + "..."
+                            : item.title}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-300 truncate w-64">
-                          {item.content}
+                          {item.content.length > 25
+                            ? item.content.substring(0, 25) + "..."
+                            : item.content}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
                           {item.type}
                         </span>
@@ -273,9 +301,11 @@ const NewsTable = () => {
                           {item.lastEdited ? item.lastEdited : item.createdDate}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <span className="text-sm text-gray-300">
-                          {item.url}
+                          {item.url.length > 20
+                            ? item.url.substring(0, 20) + "..."
+                            : item.url}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
@@ -299,6 +329,37 @@ const NewsTable = () => {
           </table>
         </div>
       )}
+
+      <div className="flex justify-between items-center mt-6">
+        <div className="text-sm text-gray-400">
+          Showing {(currentPage - 1) * pageSize + 1} to{" "}
+          {Math.min(currentPage * pageSize, totalCount)} of {totalCount} users
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === 1
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === totalPages
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
 
       {/* Edit News Modal */}
       {editNewsId && (
