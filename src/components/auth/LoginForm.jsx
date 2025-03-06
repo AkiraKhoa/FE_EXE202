@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 
-const mockUsers = [
-  { username: "a", password: "a", role: "admin" },
-  { username: "b", password: "b", role: "staff" },
-];
-
-const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
-  const [formData, setFormData] = useState({ username: "", password: "" });
+const LoginForm = ({ setUser }) => {
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -16,24 +13,53 @@ const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const foundUser = mockUsers.find(
-      (u) => u.username === formData.username && u.password === formData.password
-    );
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        formData
+      );
 
-    if (foundUser) {
-      localStorage.setItem("user", JSON.stringify(foundUser));
-      setUser(foundUser); // 🔹 Cập nhật user ngay lập tức
-      
-      // 🔹 Điều hướng theo role
-      if (foundUser.role === "admin") {
-        navigate("/"); // Admin → Dashboard
-      } else {
-        navigate("/news"); // Staff → News
-      }
-    } else {
-      setError("Invalid username or password");
+      if (response.data.token && response.data.token.result) {
+        const token = response.data.token.result;
+        localStorage.setItem("token", token);
+
+        // 🔹 Giải mã token
+        const decoded = jwtDecode(token);
+        const role =
+          decoded[
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
+          ];
+        const userId =
+          decoded[
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
+          ];
+
+        // Only set user and navigate if role is authorized
+        if (role === "Admin" || role === "MARKETANALIZER") {
+          localStorage.setItem("role", role);
+          localStorage.setItem("userId", userId);
+          setUser({ email: formData.email, role });
+
+          if (role === "Admin") {
+            navigate("/");
+          } else if (role === "MARKETANALIZER") {
+            navigate("/news");
+          }
+        } else {
+          // Clear token and role for unauthorized users
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          localStorage.removeItem("userId");
+          setError("Your account is unauthorized.");
+        };
+        
+      };
+
+    } catch (error) {
+      console.error(error);
+      setError(error.response?.data || "Invalid username or password");
     }
   };
 
@@ -45,15 +71,17 @@ const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">Login</h2>
+        <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">
+          Login
+        </h2>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-gray-300 mb-1">Username</label>
+            <label className="block text-gray-300 mb-1">Email</label>
             <input
-              type="text"
-              name="username"
-              value={formData.username}
+              type="email"
+              name="email" // 🔹 Đổi thành email thay vì username
+              value={formData.email}
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
@@ -72,7 +100,9 @@ const LoginForm = ({ setUser }) => { // 🔹 Nhận setUser từ App.js
             />
           </div>
 
-          {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+          {error && (
+            <div className="text-red-500 text-center mb-4">{error}</div>
+          )}
 
           <motion.button
             whileHover={{ scale: 1.05 }}

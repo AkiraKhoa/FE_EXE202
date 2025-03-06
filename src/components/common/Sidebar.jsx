@@ -4,30 +4,33 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 
 const SIDEBAR_ITEMS = {
-  admin: [
+  Admin: [
     { name: "Dashboard", icon: BarChart2, color: "#616", href: "/" },
     { name: "Users", icon: Users, color: "#EC4899", href: "/users" },
   ],
-  staff: [
+  MARKETANALIZER: [
     { name: "News", icon: BookOpen, color: "#8B5CF6", href: "/news" },
     { name: "Notification", icon: Bell, color: "#10B981", href: "/notifications" },
   ],
 };
 
-const Sidebar = ({ role }) => {
+const Sidebar = ({ role, setUser }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
   const menuItems = SIDEBAR_ITEMS[role] || [];
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");  // ✅ Xóa role
+    setUser(null);
     navigate("/login");
-    window.location.reload(); // Reload để UI cập nhật ngay lập tức
   };
 
   return (
     <motion.div
-      className={`relative z-10 transition-all duration-300 ease-in-out flex-shrink-0 ${isSidebarOpen ? "w-64" : "w-16"}`}
+      className={`relative z-10 transition-all duration-300 ease-in-out flex-shrink-0 ${
+        isSidebarOpen ? "w-64" : "w-16"
+      }`}
       animate={{ width: isSidebarOpen ? 256 : 80 }}
     >
       <div className="h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 flex flex-col border-r border-gray-700">
