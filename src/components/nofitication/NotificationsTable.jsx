@@ -60,7 +60,7 @@ const NotificationsTable = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/notification`,
+        `${import.meta.env.VITE_API_URL}/notifications`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -73,7 +73,7 @@ const NotificationsTable = () => {
         }
       );
       const activeNoti = response.data.items.filter(
-        (item) => item.status !== "Deleted"
+        (item) => item.type === "Global" && item.status !== "Deleted"
       );
       setNotifications(activeNoti);
       setTotalCount(response.data.totalCount);
@@ -82,7 +82,7 @@ const NotificationsTable = () => {
       setError(null);
     } catch (err) {
       setError(err, response?.data?.message || "Fail to fetch notifications");
-      console.error("Error fetching news: ", err);
+      console.error("Error fetching notification: ", err);
     } finally {
       setLoading(false);
     }
@@ -106,11 +106,11 @@ const NotificationsTable = () => {
       }
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/notification/
+        `${import.meta.env.VITE_API_URL}/notifications/
         ${updatedNoti.notificationId}`,
         updatedNoti,
         {
-          header: { Authorization: `${token}` },
+          headers: { Authorization: `${token}` },
         }
       );
 
@@ -152,9 +152,9 @@ const NotificationsTable = () => {
       }
 
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/notification/${notificationId}`,
+        `${import.meta.env.VITE_API_URL}/notifications/${notificationId}`,
         {
-          header: {
+          headers: {
             Authorization: `${token}`,
           },
         }
@@ -165,10 +165,10 @@ const NotificationsTable = () => {
       );
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || "Failed to delete news";
+        err.response?.data?.message || "Failed to delete notification";
       setError(errorMessage);
       clearError();
-      console.error("Error deleting news:", err);
+      console.error("Error deleting notification:", err);
     }
   };
 
@@ -179,6 +179,22 @@ const NotificationsTable = () => {
       setShowCreateModal(false);
     } catch (err) {
       console.log("Error adding new notifications to list: ", err);
+    }
+  };
+
+  // Format date function
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not Scheduled";
+    //   // Remove milliseconds and replace 'T' with '-'
+    //   const cleanedDate = dateString.split(".")[0].replace("T", " | ");
+    //   return cleanedDate;
+    // };
+    try {
+      const cleanedDate = dateString.split(".")[0].replace("T", "-");
+      return cleanedDate;
+    } catch (e) {
+      console.error("Date formatting error:", e, "for date:", dateString);
+      return "Invalid Date";
     }
   };
 
@@ -251,10 +267,13 @@ const NotificationsTable = () => {
                   Content
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Type
+                  Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Created At
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                  Scheduled At
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Actions
@@ -266,7 +285,7 @@ const NotificationsTable = () => {
               {notifications.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="6"
+                    colSpan="7"
                     className="px-6 py-4 text-center text-gray-400"
                   >
                     No notifications found
@@ -288,11 +307,12 @@ const NotificationsTable = () => {
                     >
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
-                        {item.title.length > 18
+                          {item.title.length > 18
                             ? item.title.substring(0, 18) + "..."
                             : item.title}
                         </div>
                       </td>
+
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
                           {item.content.length > 35
@@ -300,16 +320,35 @@ const NotificationsTable = () => {
                             : item.content}
                         </div>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
-                          {item.type}
+                        <span
+                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            item.status === "Active"
+                              ? "bg-green-800 text-green-100"
+                              : item.status === "Pending"
+                              ? "bg-blue-800 text-blue-100"
+                              : item.status === "Failed" 
+                              ? "bg-red-800 text-red-100"
+                              : "bg-gray-800 text-gray-100" // fallback for any other status
+                          }`}
+                        >
+                          {item.status}
                         </span>
                       </td>
+
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm text-gray-300">
-                          {item.createdDate}
+                          {formatDate(item.createdDate)}
                         </span>
                       </td>
+
+                      <td className="px-6 py-4">
+                        <span className="text-sm text-gray-300">
+                          {formatDate(item.scheduledTime)}
+                        </span>
+                      </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                         <button
                           className="text-indigo-400 hover:text-indigo-300 mr-2"
@@ -317,6 +356,7 @@ const NotificationsTable = () => {
                         >
                           Edit
                         </button>
+
                         <button
                           className="text-red-400 hover:text-red-300"
                           onClick={() => handleDelete(item.notificationId)}
