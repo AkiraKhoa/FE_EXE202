@@ -3,17 +3,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import axios from "axios";
 
-const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) => {
+const EditNotificationModal = ({
+  notificationId,
+  onClose,
+  onSave,
+  allNotis,
+}) => {
   const [notificationData, setNotificationData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scheduleOption, setScheduleOption] = useState("immediate");
+  const [initialStatus, setInitialStatus] = useState(null); // Track initial status
 
   useEffect(() => {
     const currentNoti = allNotis.find((noti) => noti.id === notificationId);
 
     if (currentNoti) {
-      setNotificationData(currentNoti);
+      setNotificationData({ ...currentNoti, type: "Global" });
+      setScheduleOption(currentNoti.scheduledTime ? "schedule" : "immediate");
+      setInitialStatus(currentNoti.status); 
+      // If the notification is Active, set error and stop loading
+      // if (currentNoti.status === "Active") {
+      //   setError("Cannot edit a notification that has been sent!");
+      //   setIsLoading(false);
+      //   return; // Prevent further processing
+      // }
       setIsLoading(false);
     } else {
       fetchNotiById();
@@ -30,19 +45,28 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/notification/${notificationId}`,
+        `${import.meta.env.VITE_API_URL}/notifications/${notificationId}`,
         {
           headers: {
             Authorization: `${token}`,
           },
         }
       );
+      const fetchedData = { ...response.data, type: "Global" };
+      setNotificationData(fetchedData);
+      setScheduleOption(fetchedData.scheduledTime ? "schedule" : "immediate");
+      setInitialStatus(fetchedData.status); // Store initial status
 
-      setNotificationData(response.data);
+      if (fetchedData.status === "Active") {
+        setError("Cannot edit a notification that has been sent!");
+        setIsLoading(false);
+        return; // Prevent further processing
+      }
+
       setError(null);
-    } catch (error) {
-      setError(err.response?.data?.message || "Failed to fetch news details");
-      console.error("Error fetching news:", err);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to fetch notification details");
+      console.error("Error fetching notification:", err);
     } finally {
       setIsLoading(false);
     }
@@ -55,10 +79,50 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
     });
   };
 
+  const handleScheduleOptionChange = (e) => {
+    const option = e.target.value;
+    setScheduleOption(option);
+    setNotificationData((prev) => ({
+      ...prev,
+      scheduledTime: option === "immediate" ? null : prev.scheduledTime || "",
+      status: option === "immediate" ? "Active" : "Pending",
+    }));
+  };
+
+  const validateScheduledTime = (scheduledTime) => {
+    if (!scheduledTime) return true;
+    const scheduledDate = new Date(scheduledTime + "Z");
+    const now = new Date();
+    if (scheduledDate < now) {
+      setError("Scheduled time cannot be in the past.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
-      onSave(notificationData);
+      setError(null);
+
+      // Validate ScheduledTime if "schedule" option is selected
+      if (
+        scheduleOption === "schedule" &&
+        !validateScheduledTime(notificationData.scheduledTime)
+      ) {
+        setIsSubmitting(false);
+        return;
+      }
+
+      const updatedData = {
+        ...notificationData,
+        type: "Global",
+        scheduledTime: scheduleOption === "immediate" ? null : notificationData.scheduledTime,
+        status: scheduleOption === "immediate" ? "Active" : "Pending",
+      };
+
+      onSave(updatedData); // Pass updated data to parent
+      onClose();
     } catch (err) {
       setError("Failed to save changes");
       console.error("Error saving changes:", err);
@@ -110,6 +174,8 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
     );
   }
 
+  const isInitiallyActive = initialStatus === "Active";
+
   return (
     <AnimatePresence>
       <motion.div
@@ -137,8 +203,14 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
           </h2>
 
           {error && (
-            <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm">
+            <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm flex justify-between items-center">
               {error}
+              <button
+                onClick={() => setError(null)}
+                className="ml-2 text-red-200 hover:text-red-100"
+              >
+                ×
+              </button>
             </div>
           )}
 
@@ -149,6 +221,8 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
             value={notificationData.title || ""}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter notification title"
+            disabled={isInitiallyActive} 
           />
 
           <label className="block text-gray-300 mb-1">Content</label>
@@ -157,16 +231,40 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
             value={notificationData.content || ""}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter notification content"
+            disabled={isInitiallyActive} 
           ></textarea>
 
           <label className="block text-gray-300 mt-4 mb-1">Type</label>
-          <input
-            type="text"
-            name="type"
-            value={notificationData.type || ""}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="w-full p-2 rounded bg-gray-700 text-gray-400 border border-gray-600">
+            Global
+          </div>
+
+          <label className="block text-gray-300 mb-1">Scheduled Option</label>
+          <select
+            name="scheduleOption"
+            value={scheduleOption}
+            onChange={handleScheduleOptionChange}
+            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-2"
+            disabled={isInitiallyActive}
+          >
+            <option value="immediate">Send Immediately</option>
+            <option value="schedule">Schedule for Later</option>
+          </select>
+
+          {scheduleOption === "schedule" && (
+            <>
+              <label className="block text-gray-300 mb-1">Scheduled Time</label>
+              <input
+                type="datetime-local"
+                name="scheduledTime"
+                value={notificationData.scheduledTime || ""}
+                onChange={handleChange}
+                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-4"
+                disabled={isInitiallyActive} 
+              />
+            </>
+          )}
 
           {error && (
             <motion.div
@@ -181,9 +279,9 @@ const EditNotificationModal = ({ notificationId, onClose, onSave, allNotis }) =>
 
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isInitiallyActive} 
             className={`mt-6 w-full p-2 rounded text-white font-semibold transition-all duration-200 ${
-              isSubmitting
+              isSubmitting || isInitiallyActive
                 ? "bg-blue-800 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-500"
             }`}

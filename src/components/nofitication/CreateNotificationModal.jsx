@@ -9,10 +9,13 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
     staffId: localStorage.getItem("userId"),
     title: "",
     content: "",
-    type: "",
+    type: "Global",
+    scheduledTime: null,
+    status: "Pending",
     createdDate: new Date().toISOString().split("-")[0],
   });
 
+  const [scheduleOption, setScheduleOption] = useState("immediate");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -23,10 +26,40 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
     });
   };
 
+  const handleScheduleOptionChange = (e) => {
+    const option = e.target.value;
+    setScheduleOption(option);
+    // Reset scheduledTime when switching options
+    setNotificationData((prev) => ({
+      ...prev,
+      scheduledTime: option === "immediate" ? null : prev.scheduledTime || "",
+      status: option === "immediate" ? "Active" : "Pending", // Set status based on option
+    }));
+  };
+
+  const validateScheduledTime = (scheduledTime) => {
+    if (!scheduledTime) return true; // No scheduledTime is valid (will send immediately)
+    const scheduledDate = new Date(scheduledTime + "Z");
+    const now = new Date();
+    if (scheduledDate < now) {
+      setError("Scheduled time cannot be in the past.");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
       setError(null);
+
+      if (
+        scheduleOption === "schedule" &&
+        !validateScheduledTime(notificationData.scheduledTime)
+      ) {
+        setIsSubmitting(false);
+        return;
+      }
 
       const token = localStorage.getItem("token");
       if (!token) {
@@ -35,9 +68,22 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
         return;
       }
 
+      // Prepare data, only include scheduledTime if a value is provided
+      const payload = {
+        staffId: notificationData.staffId,
+        title: notificationData.title,
+        content: notificationData.content,
+        type: "Global",
+        createdDate: notificationData.createdDate,
+        scheduledTime: notificationData.scheduledTime,
+        status: notificationData.status,
+      };
+
+      console.log(payload);
+
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/notification`,
-        notificationData,
+        `${import.meta.env.VITE_API_URL}/notifications`,
+        payload,
         {
           headers: {
             Authorization: `${token}`,
@@ -48,8 +94,15 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
       onSave(response.data);
       onClose();
     } catch (err) {
-      setError(err.response?.data?.message || "Fail to create notification");
-      console.error("Error creating notification: ", err);
+      setError(
+        err.response?.data?.message ||
+          "An error occurred while creating the notification"
+      );
+      console.error("Error creating notification:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -82,8 +135,14 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
           </h2>
 
           {error && (
-            <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm">
+            <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm flex justify-between items-center">
               {error}
+              <button
+                onClick={() => setError(null)}
+                className="ml-2 text-red-200 hover:text-red-100"
+              >
+                ×
+              </button>
             </div>
           )}
 
@@ -94,6 +153,7 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
             value={notificationData.title}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter notification title"
           />
 
           <label className="block text-gray-300 mb-1">Content</label>
@@ -102,17 +162,38 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
             value={notificationData.content || ""}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter notification content"
           ></textarea>
 
           <label className="block text-gray-300 mt-4 mb-1">Type</label>
-          <input
-            type="text"
-            name="type"
-            value={notificationData.type || ""}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          />
-          
+          <div className="w-full p-2 rounded bg-gray-700 text-gray-400 border border-gray-600">
+            Global
+          </div>
+
+          <label className="block text-gray-300 mb-1">Scheduled Option</label>
+          <select
+            name="scheduleOption"
+            value={scheduleOption}
+            onChange={handleScheduleOptionChange}
+            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-2"
+          >
+            <option value="immediate">Send Immediately</option>
+            <option value="schedule">Schedule for Later</option>
+          </select>
+
+          {scheduleOption === "schedule" && (
+            <>
+              <label className="block text-gray-300 mb-1">Scheduled Time</label>
+              <input
+                type="datetime-local"
+                name="scheduledTime"
+                value={notificationData.scheduledTime || ""}
+                onChange={handleChange}
+                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-4"
+              />
+            </>
+          )}
+
           {error && (
             <motion.div
               className="mt-4 text-red-400 text-sm text-center"

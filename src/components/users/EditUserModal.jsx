@@ -64,7 +64,6 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
       }
   };
   
-
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
@@ -166,7 +165,7 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
 
-          <label className="block text-gray-300 mt-4 mb-1">Status</label>
+          {/* <label className="block text-gray-300 mt-4 mb-1">Status</label>
           <select
             name="status"
             value={userData.status || "Active"}
@@ -176,7 +175,7 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
             <option value="Active">Active</option>
             <option value="Inactive">Inactive</option>
             <option value="Suspended">Suspended</option>
-          </select>
+          </select> */}
 
           <label className="block text-gray-300 mt-4 mb-1">
             Subscription Status

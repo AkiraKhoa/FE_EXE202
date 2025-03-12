@@ -168,6 +168,18 @@ const NewsTable = () => {
     }
   };
 
+    // Format date function
+    const formatDate = (dateString) => {
+      if (!dateString) return "Not Scheduled";
+      try {
+        const cleanedDate = dateString.split(".")[0].replace("T", "-");
+        return cleanedDate;
+      } catch (e) {
+        console.error("Date formatting error:", e, "for date:", dateString);
+        return "Invalid Date";
+      }
+    };
+
   return (
     <motion.div
       className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700 min-h-screen"
@@ -230,19 +242,19 @@ const NewsTable = () => {
           <table className="min-w-full divide-y divide-gray-700">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Title
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Content
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Type
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Published
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   URL
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
@@ -279,15 +291,15 @@ const NewsTable = () => {
                     >
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
-                        {item.title.length > 18
-                            ? item.title.substring(0, 18) + "..."
+                        {item.title.length > 12
+                            ? item.title.substring(0, 12) + "..."
                             : item.title}
                         </div>
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-300 truncate w-64">
-                          {item.content.length > 25
-                            ? item.content.substring(0, 25) + "..."
+                          {item.content.length > 50
+                            ? item.content.substring(0, 50) + "..."
                             : item.content}
                         </div>
                       </td>
@@ -296,15 +308,15 @@ const NewsTable = () => {
                           {item.type}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-300">
-                          {item.lastEdited ? item.lastEdited : item.createdDate}
-                        </span>
-                      </td>
                       <td className="px-5 py-4 whitespace-nowrap">
                         <span className="text-sm text-gray-300">
-                          {item.url.length > 20
-                            ? item.url.substring(0, 20) + "..."
+                          {formatDate(item.lastEdited ? item.lastEdited : item.createdDate)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className="text-sm text-gray-300">
+                          {item.url.length > 25
+                            ? item.url.substring(0, 25) + "..."
                             : item.url}
                         </span>
                       </td>
