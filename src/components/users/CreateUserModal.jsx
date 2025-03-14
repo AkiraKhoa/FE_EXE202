@@ -8,7 +8,7 @@ const CreateUserModal = ({ onClose, onSave }) => {
     userName: "",
     email: "",
     password: "",
-    subscriptionStatus: "Free",
+    subscriptionStatus: "None",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -116,16 +116,9 @@ const CreateUserModal = ({ onClose, onSave }) => {
           <label className="block text-gray-300 mt-4 mb-1">
             Subscription Status
           </label>
-          <select
-            name="subscriptionStatus"
-            value={userData.subscriptionStatus}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Free">Free</option>
-            <option value="Premium">Premium</option>
-            <option value="Pro">Pro</option>
-          </select>
+          <div className="w-full p-2 rounded bg-gray-700 text-gray-400 border border-gray-600">
+            None
+          </div>
 
           <button
             onClick={handleSubmit}
