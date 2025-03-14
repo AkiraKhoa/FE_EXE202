@@ -165,32 +165,14 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
 
-          {/* <label className="block text-gray-300 mt-4 mb-1">Status</label>
-          <select
-            name="status"
-            value={userData.status || "Active"}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Suspended">Suspended</option>
-          </select> */}
 
           <label className="block text-gray-300 mt-4 mb-1">
             Subscription Status
           </label>
-          <select
-            name="subscriptionStatus"
-            value={userData.subscriptionStatus || "Free"}
-            onChange={handleChange}
-            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="Free">Free</option>
-            <option value="Premium">Premium</option>
-            <option value="Pro">Pro</option>
-          </select>
-
+          <div className="w-full p-2 rounded bg-gray-700 text-gray-400 border border-gray-600">
+            {userData.subscriptionStatus}
+          </div>
+          
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
