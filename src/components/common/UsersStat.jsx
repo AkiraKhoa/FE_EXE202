@@ -34,7 +34,7 @@ const UsersStat = () => {
         color="#F59E0B"
       />
       <StatCard
-        name="Churn Rate"
+        name="Subscription Rate"
         icon={UserX}
         value={loading ? "Loading..." : error ? "Error" : stats.churnRate}
         color="#EF4444"

@@ -11,7 +11,7 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
     content: "",
     type: "Global",
     scheduledTime: null,
-    status: "Pending",
+    status: "Active",
     createdDate: new Date().toISOString().split("-")[0],
   });
 
@@ -32,13 +32,17 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
     // Reset scheduledTime when switching options
     setNotificationData((prev) => ({
       ...prev,
-      scheduledTime: option === "immediate" ? null : prev.scheduledTime || "",
+      scheduledTime: option === "immediate" ? null : prev.scheduledTime,
       status: option === "immediate" ? "Active" : "Pending", // Set status based on option
     }));
   };
 
   const validateScheduledTime = (scheduledTime) => {
-    if (!scheduledTime) return true; // No scheduledTime is valid (will send immediately)
+    if (scheduleOption === "immediate") return true;
+    if (!scheduledTime){
+      setError("Scheduled time is required when scheduling for later.");
+      return false
+    }; // No scheduledTime is valid (will send immediately)
     const scheduledDate = new Date(scheduledTime + "Z");
     const now = new Date();
     if (scheduledDate < now) {
@@ -75,7 +79,7 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
         content: notificationData.content,
         type: "Global",
         createdDate: notificationData.createdDate,
-        scheduledTime: notificationData.scheduledTime,
+        scheduledTime: notificationData.scheduledTime || null,
         status: notificationData.status,
       };
 
@@ -190,6 +194,7 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
                 value={notificationData.scheduledTime || ""}
                 onChange={handleChange}
                 className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-4"
+                required
               />
             </>
           )}
