@@ -72,10 +72,10 @@ const NotificationsTable = () => {
           },
         }
       );
-      const activeNoti = response.data.items.filter(
-        (item) => item.type === "Global" && item.status !== "Deleted"
-      );
-      setNotifications(activeNoti);
+      // const activeNoti = response.data.items.filter(
+      //   (item) => item.type === "Global" && item.status !== "Deleted"
+      // );
+      setNotifications(response.data.items);
       setTotalCount(response.data.totalCount);
       setTotalPages(Math.ceil(response.data.totalCount / size));
       setCurrentPage(page);
@@ -296,7 +296,7 @@ const NotificationsTable = () => {
                   .filter(
                     (item) =>
                       item.content.toLowerCase().includes(searchTerm) ||
-                      item.type.toLowerCase().includes(searchTerm)
+                      item.title.toLowerCase().includes(searchTerm)
                   )
                   .map((item) => (
                     <motion.tr

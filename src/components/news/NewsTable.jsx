@@ -67,10 +67,10 @@ const NewsTable = () => {
           pageSize: size,
         },
       });
-      const activeNews = response.data.items.filter(
-        (item) => item.status !== "Deleted"
-      );
-      setNews(activeNews);
+      // const activeNews = response.data.items.filter(
+      //   (item) => item.status !== "Deleted"
+      // );
+      setNews(response.data.items);
       setTotalCount(response.data.totalCount);
       setTotalPages(Math.ceil(response.data.totalCount / size));
       setCurrentPage(page);
