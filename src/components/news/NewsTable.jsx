@@ -59,7 +59,7 @@ const NewsTable = () => {
 
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/news`, {
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
         },
         params: {
           searchTerm: search,
@@ -101,7 +101,7 @@ const NewsTable = () => {
         updatedNews,
         {
           headers: {
-            Authorization: `${token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
@@ -123,7 +123,7 @@ const NewsTable = () => {
 
   // Delete news API call
   const handleDelete = async (newsId) => {
-    console.log("Attempting to delete news with ID:", newsId);
+    console.error("Attempting to delete news with ID:", newsId);
 
     if (!newsId) {
       console.error("Error: newsId is undefined!");
@@ -143,7 +143,7 @@ const NewsTable = () => {
 
       await axios.delete(`${import.meta.env.VITE_API_URL}/news/${newsId}`, {
         headers: {
-          Authorization: `${token}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       });
@@ -245,7 +245,7 @@ const NewsTable = () => {
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Content
                 </th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
@@ -296,10 +296,10 @@ const NewsTable = () => {
                             : item.title}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-300 truncate w-64">
-                          {item.content.length > 50
-                            ? item.content.substring(0, 50) + "..."
+                          {item.content.length > 55
+                            ? item.content.substring(0, 55) + "..."
                             : item.content}
                         </div>
                       </td>

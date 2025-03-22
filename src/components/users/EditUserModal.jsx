@@ -15,14 +15,14 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    console.log("Modal opened with id:", id);
+    // console.log("Modal opened with id:", id);
     const currentUser = allUsers.find((user) => user.id === id);
     if (currentUser) {
-      console.log("User found in allUsers:", currentUser);
+      // console.log("User found in allUsers:", currentUser);
       setUserData(currentUser);
       setIsLoading(false);
     } else {
-      console.log("Fetching user from API...");
+      // console.log("Fetching user from API...");
       fetchUserById();
     }
   }, [id]);
@@ -30,8 +30,8 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
   const fetchUserById = async () => {
     try {
       const token = localStorage.getItem("token");
-      console.log("Token:", token);
-      console.log("Fetching user with URL:", `${import.meta.env.VITE_API_URL}/users/${id}`);
+      // console.log("Token:", token);
+      // console.log("Fetching user with URL:", `${import.meta.env.VITE_API_URL}/users/${id}`);
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/users/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }

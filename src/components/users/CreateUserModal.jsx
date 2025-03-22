@@ -40,7 +40,7 @@ const CreateUserModal = ({ onClose, onSave }) => {
       );
 
       onSave(response.data);
-      console.log("User created:", response.data);
+      // console.log("User created:", response.data);
       onClose();
       
     } catch (err) {

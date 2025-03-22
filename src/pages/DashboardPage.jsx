@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Header from "../components/common/Header";
-import { BarChart2, ShoppingBag, User, Users, Zap } from "lucide-react";
-import StatCard from "../components/common/StatCard";
-import { motion } from "framer-motion";
-import SalesOverviewChart from "../components/dashboard/SalesOverviewChart";
-import CategoryDistributionChart from "../components/dashboard/CategoryDistributionChart";
 import UsersStat from "../components/common/UsersStat";
-import UserDemographicsChart from "../components/dashboard/UserDemographicsChart";
 import UserGrowthChart from "../components/dashboard/UserGrowthChart";
 import SubscriptionRatioChart from "../components/dashboard/SubscriptionRatioChart";
 import { UserStatsProvider } from "../components/context/UserStatsContext";
+import axios from "axios";
 
 const DashboardPage = () => {
   const [stats, setStats] = useState({ growthData: [] });
@@ -26,19 +21,16 @@ const DashboardPage = () => {
         }
 
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/user-stats`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/user-stats`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${token}`,
           },
         });
-        if (!response.ok) {
-          throw new Error("Failed to fetch user stats");
-        }
-        const result = await response.json();
-        setStats(result);
+        
+        setStats(response.data);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError(err.response?.data?.message || err.message || "Failed to fetch user stats");
         setLoading(false);
         console.error("Error fetching data:", err);
       }

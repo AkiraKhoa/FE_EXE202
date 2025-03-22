@@ -48,7 +48,7 @@ const EditNotificationModal = ({
         `${import.meta.env.VITE_API_URL}/notifications/${notificationId}`,
         {
           headers: {
-            Authorization: `${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

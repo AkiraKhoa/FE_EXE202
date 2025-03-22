@@ -90,7 +90,7 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
         payload,
         {
           headers: {
-            Authorization: `${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );

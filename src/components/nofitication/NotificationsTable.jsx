@@ -131,7 +131,7 @@ const NotificationsTable = () => {
 
   //Delete notification API call
   const handleDelete = async (notificationId) => {
-    console.log("Attempting to delete notification with ID:", notificationId);
+    // console.log("Attempting to delete notification with ID:", notificationId);
 
     if (!notificationId) {
       console.error("Error: notificationId is undefined!");
@@ -178,7 +178,7 @@ const NotificationsTable = () => {
       setNotifications([newNoti, ...notifications]);
       setShowCreateModal(false);
     } catch (err) {
-      console.log("Error adding new notifications to list: ", err);
+      console.error("Error adding new notifications to list: ", err);
     }
   };
 

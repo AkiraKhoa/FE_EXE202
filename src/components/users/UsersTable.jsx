@@ -45,7 +45,7 @@ const UsersTable = () => {
         }
       );
 
-      console.log("Users data from API:", response.data);
+      // console.log("Users data from API:", response.data);
       setUsers(response.data.items);
       setTotalCount(response.data.totalCount);
       setTotalPages(Math.ceil(response.data.totalCount / size));
@@ -125,7 +125,7 @@ const UsersTable = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
-    console.log("Deleting user with ID:", id); 
+    // console.log("Deleting user with ID:", id); 
 
     try {
       const token = localStorage.getItem("token");
