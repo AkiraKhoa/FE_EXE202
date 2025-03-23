@@ -72,9 +72,6 @@ const NotificationsTable = () => {
           },
         }
       );
-      // const activeNoti = response.data.items.filter(
-      //   (item) => item.type === "Global" && item.status !== "Deleted"
-      // );
       setNotifications(response.data.items);
       setTotalCount(response.data.totalCount);
       setTotalPages(Math.ceil(response.data.totalCount / size));
@@ -110,7 +107,7 @@ const NotificationsTable = () => {
         ${updatedNoti.notificationId}`,
         updatedNoti,
         {
-          headers: { Authorization: `${token}` },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -138,6 +135,16 @@ const NotificationsTable = () => {
       return;
     }
 
+    const notificationToDelete = notifications.find(
+      (item) => item.notificationId === notificationId
+    );
+
+    if (notificationToDelete && notificationToDelete.status === "Active") {
+      setError("Cannot delete an Active notification");
+      clearError();
+      return;
+    }
+
     if (
       !window.confirm("Are you sure you want to delete this notifications?")
     ) {
@@ -155,7 +162,7 @@ const NotificationsTable = () => {
         `${import.meta.env.VITE_API_URL}/notifications/${notificationId}`,
         {
           headers: {
-            Authorization: `${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
@@ -185,10 +192,6 @@ const NotificationsTable = () => {
   // Format date function
   const formatDate = (dateString) => {
     if (!dateString) return "Not Scheduled";
-    //   // Remove milliseconds and replace 'T' with '-'
-    //   const cleanedDate = dateString.split(".")[0].replace("T", " | ");
-    //   return cleanedDate;
-    // };
     try {
       const cleanedDate = dateString.split(".")[0].replace("T", "-");
       return cleanedDate;
@@ -239,14 +242,14 @@ const NotificationsTable = () => {
           initial={{ opacity: 1 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 1.0 }}
         >
-          <span>Error: {error}</span>
+          <span>Error: {error} </span>
           <button
             onClick={dismissError}
-            className="text-red-200 hover:text-red-100 focus:outline-none"
+            className="text-red-200 hover:text-red-100 focus:outline-none absolute right-10"
           >
-            ×
+            X
           </button>
         </motion.div>
       )}
