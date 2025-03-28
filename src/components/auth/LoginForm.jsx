@@ -63,6 +63,10 @@ const LoginForm = ({ setUser }) => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    navigate("/forgot-password");
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
       <motion.div
@@ -111,6 +115,17 @@ const LoginForm = ({ setUser }) => {
           >
             Login
           </motion.button>
+
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="w-full mt-4 bg-gray-600 hover:bg-gray-500 p-3 rounded-lg text-white font-semibold transition-all duration-200"
+            type="button" // Prevent form submission
+            onClick={handleForgotPassword}
+          >
+            Forgot Password?
+          </motion.button>
+
         </form>
       </motion.div>
     </div>

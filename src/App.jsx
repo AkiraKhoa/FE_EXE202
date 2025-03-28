@@ -6,6 +6,7 @@ import NewsPage from "./pages/NewsPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import Sidebar from "./components/common/Sidebar";
 import LoginPage from "./pages/LoginPage";
+import ForgotPasswordForm from "./components/auth/ForgotPasswordForm";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -38,6 +39,7 @@ function App() {
             <>
               <Route path="/login" element={<LoginPage setUser={setUser} />} />
               <Route path="*" element={<Navigate to="/login" />} />
+              <Route path="/forgot-password" element={<ForgotPasswordForm />} />
             </>
           ) : (
             <>
