@@ -1,9 +1,8 @@
-import React from 'react';
+import React from "react";
 import { UserCheck, UserPlus, UsersIcon, UserX } from "lucide-react";
 import { motion } from "framer-motion";
 import StatCard from "./StatCard";
-import { useUserStats } from '../context/UserStatsContext';
-
+import { useUserStats } from "../context/UserStatsContext";
 
 const UsersStat = () => {
   const { stats, loading, error } = useUserStats();
@@ -18,25 +17,49 @@ const UsersStat = () => {
       <StatCard
         name="Total Users"
         icon={UsersIcon}
-        value={loading ? "Loading..." : error ? "Error" : stats.totalUsers.toLocaleString()}
+        value={
+          loading
+            ? "Loading..."
+            : error
+            ? "Error"
+            : stats.totalUsers.toLocaleString()
+        }
         color="#6366F1"
-      />
-      <StatCard
-        name="New Users"
-        icon={UserPlus}
-        value={loading ? "Loading..." : error ? "Error" : stats.newUsers}
-        color="#10B981"
       />
       <StatCard
         name="Subscription Users"
         icon={UserCheck}
-        value={loading ? "Loading..." : error ? "Error" : stats.subscriptionUsers.toLocaleString()}
+        value={
+          loading
+            ? "Loading..."
+            : error
+            ? "Error"
+            : stats.subscriptionUsers.toLocaleString()
+        }
         color="#F59E0B"
       />
       <StatCard
-        name="Subscription Rate"
+        name="Average Session Time"
+        icon={UserPlus}
+        value={
+          loading
+            ? "Loading..."
+            : error
+            ? "Error"
+            : `${stats.averageSessionTime.toFixed(1)} mins`
+        }
+        color="#10B981"
+      />
+      <StatCard
+        name="Churn Rate"
         icon={UserX}
-        value={loading ? "Loading..." : error ? "Error" : stats.churnRate}
+        value={
+          loading
+            ? "Loading..."
+            : error
+            ? "Error"
+            : `${stats.churnRate.toFixed(1)}%`
+        }
         color="#EF4444"
       />
     </motion.div>

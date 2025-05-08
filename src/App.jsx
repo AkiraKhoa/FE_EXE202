@@ -18,7 +18,6 @@ function App() {
     const role = localStorage.getItem("role");
 
     setUser(token && role ? { role } : null);
-
     setLoading(false);
   }, []);
 
@@ -43,19 +42,19 @@ function App() {
             </>
           ) : (
             <>
-              {/* 📌 Bảo vệ Dashboard: Chỉ Admin vào được */}
+              {/* Protect Dashboard: Only Admin can access */}
               <Route element={<ProtectedRoute user={user} allowedRoles={["Admin"]} />}>
                 <Route path="/" element={<DashboardPage />} />
                 <Route path="/users" element={<UsersPage />} />
               </Route>
 
-              {/* 📌 Bảo vệ trang Staff: Chỉ MARKETANALIZER vào được */}
-              <Route element={<ProtectedRoute user={user} allowedRoles={["MARKETANALIZER"]} />}>
+              {/* Protect Staff pages: Only Staff can access */}
+              <Route element={<ProtectedRoute user={user} allowedRoles={["Staff"]} />}>
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
               </Route>
 
-              {/* 📌 Nếu không có quyền, về trang phù hợp */}
+              {/* Redirect unauthorized users to appropriate page */}
               <Route path="*" element={<Navigate to={user.role === "Admin" ? "/" : "/news"} />} />
             </>
           )}

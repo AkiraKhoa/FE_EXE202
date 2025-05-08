@@ -6,14 +6,14 @@ const LoginPage = ({ setUser }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = localStorage.getItem("user");
     if (user) {
-      navigate("/"); // Nếu đã login, về trang chính
+      navigate("/"); // Redirect to main page if already logged in
     }
   }, [navigate]);
 
   return (
-    <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8 ">
+    <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8">
       <LoginForm setUser={setUser} />
     </main>
   );

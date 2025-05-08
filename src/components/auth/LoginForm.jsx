@@ -1,13 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
+// import axios from "axios"; // Commented out for mock data, re-enable when backend is available
+// import { jwtDecode } from "jwt-decode"; // Commented out for mock data, re-enable when backend is available
 
 const LoginForm = ({ setUser }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  // Mock user data for temporary use until backend is available
+  const mockUsers = [
+    { email: "a@gmail.com", password: "Abcd@1234", role: "Admin" },
+    { email: "b@gmail.com", password: "Abcd@1234", role: "Staff" },
+  ];
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -15,6 +21,34 @@ const LoginForm = ({ setUser }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
+    // Mock login logic (temporary until backend is available)
+    const user = mockUsers.find(
+      (u) => u.email === formData.email && u.password === formData.password
+    );
+
+    if (user) {
+      // Simulate token and backend response structure
+      const mockToken = `mock-jwt-${user.email}`;
+      localStorage.setItem("token", mockToken);
+      localStorage.setItem("role", user.role);
+      localStorage.setItem("userId", user.email); // Use email as userId for simplicity
+
+      setUser({ email: user.email, role: user.role });
+
+      // Navigate based on role
+      if (user.role === "Admin") {
+        navigate("/");
+      } else if (user.role === "Staff") {
+        navigate("/news");
+      }
+    } else {
+      setError("Invalid email or password");
+    }
+
+    // Backend login logic (commented out, re-enable when backend is available)
+    /*
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/login`,
@@ -25,7 +59,7 @@ const LoginForm = ({ setUser }) => {
         const token = response.data.token.result;
         localStorage.setItem("token", token);
 
-        // 🔹 Giải mã token
+        // Decode token
         const decoded = jwtDecode(token);
         const role =
           decoded[
@@ -37,14 +71,14 @@ const LoginForm = ({ setUser }) => {
           ];
 
         // Only set user and navigate if role is authorized
-        if (role === "Admin" || role === "MARKETANALIZER") {
+        if (role === "Admin" || role === "Staff") {
           localStorage.setItem("role", role);
           localStorage.setItem("userId", userId);
           setUser({ email: formData.email, role });
 
           if (role === "Admin") {
             navigate("/");
-          } else if (role === "MARKETANALIZER") {
+          } else if (role === "Staff") {
             navigate("/news");
           }
         } else {
@@ -53,17 +87,16 @@ const LoginForm = ({ setUser }) => {
           localStorage.removeItem("role");
           localStorage.removeItem("userId");
           setError("Your account is unauthorized.");
-        };
-        
-      };
-
+        }
+      }
     } catch (error) {
       console.error(error);
       setError(error.response?.data || "Invalid username or password");
     }
+    */
   };
 
-  const handleForgotPassword = async () => {
+  const handleForgotPassword = () => {
     navigate("/forgot-password");
   };
 
@@ -84,7 +117,7 @@ const LoginForm = ({ setUser }) => {
             <label className="block text-gray-300 mb-1">Email</label>
             <input
               type="email"
-              name="email" // 🔹 Đổi thành email thay vì username
+              name="email"
               value={formData.email}
               onChange={handleChange}
               className="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none"
@@ -120,12 +153,11 @@ const LoginForm = ({ setUser }) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="w-full mt-4 bg-gray-600 hover:bg-gray-500 p-3 rounded-lg text-white font-semibold transition-all duration-200"
-            type="button" // Prevent form submission
+            type="button"
             onClick={handleForgotPassword}
           >
             Forgot Password?
           </motion.button>
-
         </form>
       </motion.div>
     </div>
