@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
-import axios from "axios";
+// import axios from "axios"; // Commented out for mock data, re-enable when backend is available
 import EditUserModal from "./EditUserModal";
 import CreateUserModal from "./CreateUserModal";
 
@@ -12,18 +12,75 @@ const UsersTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editUserId, setEditUserId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(9);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-   // Pagination state
-   const [currentPage, setCurrentPage] = useState(1);
-   const [pageSize, setPageSize] = useState(9);
-   const [totalCount, setTotalCount] = useState(0);
-   const [totalPages, setTotalPages] = useState(0);
- 
+  // Mock data for temporary use
+  const mockUsers = [
+    {
+      Id: "1",
+      UserName: "john_doe",
+      Email: "john.doe@example.com",
+      EmailConfirmed: true,
+      PhoneNumber: "1234567890",
+      LockoutEnabled: false,
+      AccessFailedCount: 0,
+      Status: "Active",
+      SubscriptionStatus: "Active",
+    },
+    {
+      Id: "2",
+      UserName: "jane_smith",
+      Email: "jane.smith@example.com",
+      EmailConfirmed: false,
+      PhoneNumber: null,
+      LockoutEnabled: true,
+      AccessFailedCount: 2,
+      Status: "Inactive",
+      SubscriptionStatus: "Inactive",
+    },
+    {
+      Id: "3",
+      UserName: "alice_jones",
+      Email: "alice.jones@example.com",
+      EmailConfirmed: true,
+      PhoneNumber: "0987654321",
+      LockoutEnabled: false,
+      AccessFailedCount: 0,
+      Status: "Active",
+      SubscriptionStatus: "Active",
+    },
+  ];
 
-   // Fetch users với pagination và search term
   const fetchUsers = async (search = "", page = 1, size = pageSize) => {
     try {
       setLoading(true);
+
+      // Mock data logic
+      let filteredUsers = mockUsers;
+      if (search) {
+        filteredUsers = mockUsers.filter(
+          (user) =>
+            user.UserName.toLowerCase().includes(search.toLowerCase()) ||
+            user.Email.toLowerCase().includes(search.toLowerCase()) ||
+            user.Status.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      const start = (page - 1) * size;
+      const paginatedUsers = filteredUsers.slice(start, start + size);
+
+      setUsers(paginatedUsers);
+      setTotalCount(filteredUsers.length);
+      setTotalPages(Math.ceil(filteredUsers.length / size));
+      setCurrentPage(page);
+      setError(null);
+      setLoading(false);
+
+      // Backend API call (commented out, re-enable when backend is available)
+      /*
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
@@ -45,47 +102,38 @@ const UsersTable = () => {
         }
       );
 
-      // console.log("Users data from API:", response.data);
       setUsers(response.data.items);
       setTotalCount(response.data.totalCount);
       setTotalPages(Math.ceil(response.data.totalCount / size));
       setCurrentPage(page);
       setError(null);
+      setLoading(false);
+      */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch users");
       console.error("Error fetching users:", err);
-    } finally {
       setLoading(false);
     }
   };
 
-  // Gọi API khi component mount hoặc searchTerm thay đổi
   useEffect(() => {
     fetchUsers(searchTerm, currentPage);
   }, [currentPage]);
 
-  // Xử lý khi nhấn Enter
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      setCurrentPage(1); // Reset về trang đầu tiên khi tìm kiếm
+      setCurrentPage(1);
       fetchUsers(searchTerm, 1);
     }
   };
 
-  // Xử lý thay đổi search term
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
   };
 
-  // Xử lý chuyển trang
   const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > totalPages) return; // Không cho phép chuyển trang ngoài phạm vi
+    if (newPage < 1 || newPage > totalPages) return;
     setCurrentPage(newPage);
-  };
-
-
-  const handleSearch = (e) => {
-    setSearchTerm(e.target.value.toLowerCase());
   };
 
   const handleEdit = (id) => {
@@ -94,6 +142,16 @@ const UsersTable = () => {
 
   const handleSave = async (updatedUser) => {
     try {
+      // Mock update logic
+      setUsers(
+        users.map((user) =>
+          user.Id === updatedUser.Id ? { ...user, ...updatedUser } : user
+        )
+      );
+      setEditUserId(null);
+
+      // Backend API call (commented out, re-enable when backend is available)
+      /*
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
@@ -101,7 +159,7 @@ const UsersTable = () => {
       }
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/users/${updatedUser.id}`,
+        `${import.meta.env.VITE_API_URL}/users/${updatedUser.Id}`,
         updatedUser,
         {
           headers: {
@@ -112,11 +170,12 @@ const UsersTable = () => {
       );
 
       setUsers(
-        users.map((user) => 
-          user.id === updatedUser.id ? response.data : user
+        users.map((user) =>
+          user.Id === updatedUser.Id ? response.data : user
         )
       );
       setEditUserId(null);
+      */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update user");
       console.error("Error updating user:", err);
@@ -125,9 +184,13 @@ const UsersTable = () => {
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
-    // console.log("Deleting user with ID:", id); 
 
     try {
+      // Mock delete logic
+      setUsers(users.filter((user) => user.Id !== id));
+
+      // Backend API call (commented out, re-enable when backend is available)
+      /*
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
@@ -143,7 +206,8 @@ const UsersTable = () => {
         }
       );
 
-      setUsers(users.filter((user) => user.id !== id));
+      setUsers(users.filter((user) => user.Id !== id));
+      */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete user");
       console.error("Error deleting user:", err);
@@ -151,7 +215,7 @@ const UsersTable = () => {
   };
 
   const handleCreate = (newUser) => {
-    setUsers([newUser, ...users]);
+    setUsers([{ ...newUser, Id: String(users.length + 1) }, ...users]);
     setShowCreateModal(false);
   };
 
@@ -179,13 +243,13 @@ const UsersTable = () => {
             placeholder="Search users..."
             className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchTerm}
-            onChange={handleSearchChange} // Cập nhật searchTerm
-            onKeyDown={handleKeyDown} // Bắt sự kiện nhấn Enter
+            onChange={handleSearchChange}
+            onKeyDown={handleKeyDown}
           />
           <Search
             className="absolute left-3 top-2.5 text-gray-400 cursor-pointer"
             size={18}
-            onClick={() => fetchUsers(searchTerm)} // Thêm sự kiện click cho biểu tượng search
+            onClick={() => fetchUsers(searchTerm)}
           />
         </div>
       </div>
@@ -222,7 +286,6 @@ const UsersTable = () => {
                 </th>
               </tr>
             </thead>
-
             <tbody className="divide-y divide-gray-700">
               {users.length === 0 ? (
                 <tr>
@@ -231,93 +294,82 @@ const UsersTable = () => {
                   </td>
                 </tr>
               ) : (
-                users
-                  .filter(
-                    (user) =>
-                      !searchTerm ||
-                      user.userName?.toLowerCase().includes(searchTerm) ||
-                      user.email?.toLowerCase().includes(searchTerm) ||
-                      user.status?.toLowerCase().includes(searchTerm)
-                  )
-                  .map((user) => (
-                    <motion.tr
-                      key={user.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-100">
-                          {user.userName}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-300">
-                          {user.email}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-800 text-green-100">
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-300">
-                          {user.subscriptionStatus}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                        <button
-                          className="text-indigo-400 hover:text-indigo-300 mr-2"
-                          onClick={() => handleEdit(user.id)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="text-red-400 hover:text-red-300"
-                          onClick={() => handleDelete(user.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </motion.tr>
-                  ))
+                users.map((user) => (
+                  <motion.tr
+                    key={user.Id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-100">
+                        {user.UserName}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-300">{user.Email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-800 text-green-100">
+                        {user.Status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-300">
+                        {user.SubscriptionStatus}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <button
+                        className="text-indigo-400 hover:text-indigo-300 mr-2"
+                        onClick={() => handleEdit(user.Id)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="text-red-400 hover:text-red-300"
+                        onClick={() => handleDelete(user.Id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </motion.tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       )}
-    {/* Phần pagination */}
-    <div className="flex justify-between items-center mt-6">
-      <div className="text-sm text-gray-400">
-        Showing {(currentPage - 1) * pageSize + 1} to{" "}
-        {Math.min(currentPage * pageSize, totalCount)} of {totalCount} users
+      <div className="flex justify-between items-center mt-6">
+        <div className="text-sm text-gray-400">
+          Showing {(currentPage - 1) * pageSize + 1} to{" "}
+          {Math.min(currentPage * pageSize, totalCount)} of {totalCount} users
+        </div>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === 1
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === totalPages
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+            }`}
+          >
+            Next
+          </button>
+        </div>
       </div>
-      <div className="flex space-x-2">
-        <button
-          onClick={() => handlePageChange(currentPage - 1)}
-          disabled={currentPage === 1}
-          className={`px-4 py-2 rounded-lg ${
-            currentPage === 1
-              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-          }`}
-        >
-          Previous
-        </button>
-        <button
-          onClick={() => handlePageChange(currentPage + 1)}
-          disabled={currentPage === totalPages}
-          className={`px-4 py-2 rounded-lg ${
-            currentPage === totalPages
-              ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-              : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-          }`}
-        >
-          Next
-        </button>
-      </div>
-    </div>
       {editUserId && (
         <EditUserModal
           id={editUserId}
@@ -326,7 +378,6 @@ const UsersTable = () => {
           allUsers={users}
         />
       )}
-
       {showCreateModal && (
         <CreateUserModal
           onClose={() => setShowCreateModal(false)}
