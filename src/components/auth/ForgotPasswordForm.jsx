@@ -84,7 +84,22 @@ const ForgotPasswordForm = ({ setUser }) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-900">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+      <motion.div 
+        className="z-10 flex items-center justify-center"
+        initial={{ opacity: 0, y: -30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <h1 className="text-7xl font-bold text-orange-400">App Chảo</h1>
+        <img 
+          src="/pan.png" 
+          alt="App Chảo Icon" 
+          className="ml-2 h-[180px] w-[180px]" 
+        />
+      </motion.div>
+
+      {/* Form Section */}
       <motion.div
         className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-8 border border-gray-700 w-96"
         initial={{ opacity: 0, y: -20 }}
