@@ -8,7 +8,7 @@ const SIDEBAR_ITEMS = {
     { name: "Dashboard", icon: BarChart2, color: "#616", href: "/" },
     { name: "Users", icon: Users, color: "#EC4899", href: "/users" },
   ],
-  MARKETANALIZER: [
+  Staff: [
     { name: "News", icon: BookOpen, color: "#8B5CF6", href: "/news" },
     { name: "Notification", icon: Bell, color: "#10B981", href: "/notifications" },
   ],

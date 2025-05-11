@@ -59,6 +59,14 @@ const NotificationsTable = () => {
         return;
       }
 
+      // For testing without API
+      // Comment this out when you have the real API
+      setNotifications([]); // or some mock data
+      setTotalCount(0);
+      setTotalPages(1);
+      setError(null);
+
+      /* Uncomment when API is ready
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/notifications`,
         {
@@ -72,14 +80,15 @@ const NotificationsTable = () => {
           },
         }
       );
-      setNotifications(response.data.items);
-      setTotalCount(response.data.totalCount);
-      setTotalPages(Math.ceil(response.data.totalCount / size));
+      setNotifications(response.data.items || []);
+      setTotalCount(response.data.totalCount || 0);
+      setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
       setCurrentPage(page);
       setError(null);
+      */
     } catch (err) {
-      setError(err, response?.data?.message || "Fail to fetch notifications");
-      console.error("Error fetching notification: ", err);
+      setError(err.response?.data?.message || "Failed to fetch data");
+      setNotifications([]); // Ensure notifications is at least an empty array
     } finally {
       setLoading(false);
     }
@@ -285,21 +294,22 @@ const NotificationsTable = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-700">
-              {notifications.length === 0 ? (
+              {!notifications || notifications.length === 0 ? (
                 <tr>
                   <td
                     colSpan="7"
                     className="px-6 py-4 text-center text-gray-400"
                   >
-                    No notifications found
+                    {loading ? "Loading..." : "No notifications found"}
                   </td>
                 </tr>
               ) : (
                 notifications
                   .filter(
                     (item) =>
-                      item.content.toLowerCase().includes(searchTerm) ||
-                      item.title.toLowerCase().includes(searchTerm)
+                      !searchTerm ||
+                      item?.content?.toLowerCase().includes(searchTerm) ||
+                      item?.title?.toLowerCase().includes(searchTerm)
                   )
                   .map((item) => (
                     <motion.tr

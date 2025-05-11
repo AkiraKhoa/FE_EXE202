@@ -47,6 +47,7 @@ const NewsTable = () => {
     if (newPage < 1 || newPage > totalPages) return;
     setCurrentPage(newPage);
   };
+
   const fetchNews = async (search = "", page = 1, size = pageSize) => {
     try {
       setLoading(true);
@@ -57,6 +58,14 @@ const NewsTable = () => {
         return;
       }
 
+      // For testing without API
+      // Comment this out when you have the real API
+      setNews([]); // or some mock data
+      setTotalCount(0);
+      setTotalPages(1);
+      setError(null);
+      
+      /* Uncomment when API is ready
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/news`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -67,14 +76,14 @@ const NewsTable = () => {
           pageSize: size,
         },
       });
-      setNews(response.data.items);
-      setTotalCount(response.data.totalCount);
-      setTotalPages(Math.ceil(response.data.totalCount / size));
-      setCurrentPage(page);
-      setError(null);
+      setNews(response.data.items || []);
+      setTotalCount(response.data.totalCount || 0);
+      setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
+      */
+      
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch news");
-      console.error("Error fetching news:", err);
+      setError(err.response?.data?.message || "Failed to fetch data");
+      setNews([]); // Ensure news is at least an empty array
     } finally {
       setLoading(false);
     }
@@ -261,13 +270,13 @@ const NewsTable = () => {
             </thead>
 
             <tbody className="divide-y divide-gray-700">
-              {news.length === 0 ? (
+              {!news || news.length === 0 ? (
                 <tr>
                   <td
                     colSpan="6"
                     className="px-6 py-4 text-center text-gray-400"
                   >
-                    No news articles found
+                    {loading ? "Loading..." : "No news articles found"}
                   </td>
                 </tr>
               ) : (
@@ -275,9 +284,9 @@ const NewsTable = () => {
                   .filter(
                     (item) =>
                       !searchTerm ||
-                      item.title?.toLowerCase().includes(searchTerm) ||
-                      item.content?.toLowerCase().includes(searchTerm) ||
-                      item.type?.toLowerCase().includes(searchTerm)
+                      item?.title?.toLowerCase().includes(searchTerm) ||
+                      item?.content?.toLowerCase().includes(searchTerm) ||
+                      item?.type?.toLowerCase().includes(searchTerm)
                   )
                   .map((item) => (
                     <motion.tr

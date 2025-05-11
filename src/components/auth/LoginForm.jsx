@@ -1,19 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-// import axios from "axios"; // Commented out for mock data, re-enable when backend is available
-// import { jwtDecode } from "jwt-decode"; // Commented out for mock data, re-enable when backend is available
+import axios from "axios"; // Commented out for mock data, re-enable when backend is available
+import { jwtDecode } from "jwt-decode"; // Commented out for mock data, re-enable when backend is available
 
 const LoginForm = ({ setUser }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
-  // Mock user data for temporary use until backend is available
-  const mockUsers = [
-    { email: "a@gmail.com", password: "Abcd@1234", role: "Admin" },
-    { email: "b@gmail.com", password: "Abcd@1234", role: "Staff" },
-  ];
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,52 +17,30 @@ const LoginForm = ({ setUser }) => {
     e.preventDefault();
     setError("");
 
-    // Mock login logic (temporary until backend is available)
-    const user = mockUsers.find(
-      (u) => u.email === formData.email && u.password === formData.password
-    );
-
-    if (user) {
-      // Simulate token and backend response structure
-      const mockToken = `mock-jwt-${user.email}`;
-      localStorage.setItem("token", mockToken);
-      localStorage.setItem("role", user.role);
-      localStorage.setItem("userId", user.email); // Use email as userId for simplicity
-
-      setUser({ email: user.email, role: user.role });
-
-      // Navigate based on role
-      if (user.role === "Admin") {
-        navigate("/");
-      } else if (user.role === "Staff") {
-        navigate("/news");
-      }
-    } else {
-      setError("Invalid email or password");
-    }
-
-    // Backend login logic (commented out, re-enable when backend is available)
-    /*
     try {
+      // console.log("Attempting login with:", formData);
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
+        `${import.meta.env.VITE_API}/Auth/login`,
         formData
       );
 
-      if (response.data.token && response.data.token.result) {
-        const token = response.data.token.result;
+      // console.log("Response:", response.data);
+
+      if (response.data.token) {
+        const token = response.data.token
         localStorage.setItem("token", token);
 
         // Decode token
         const decoded = jwtDecode(token);
-        const role =
-          decoded[
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-          ];
-        const userId =
-          decoded[
-            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-          ];
+        // console.log("Decoded token:", decoded); // Debug decoded token
+
+        const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        const userId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+        // console.log("Role:", role); // Debug role
+        // console.log("User ID:", userId); // Debug user ID
+        if (!role) {
+          throw new Error("Invalid token: missing role claim");
+        }
 
         // Only set user and navigate if role is authorized
         if (role === "Admin" || role === "Staff") {
@@ -76,24 +48,32 @@ const LoginForm = ({ setUser }) => {
           localStorage.setItem("userId", userId);
           setUser({ email: formData.email, role });
 
-          if (role === "Admin") {
-            navigate("/");
-          } else if (role === "Staff") {
-            navigate("/news");
-          }
+          // Add delay to ensure state updates
+          setTimeout(() => {
+            if (role === "Admin") {
+              // console.log("Navigating to admin dashboard...");
+              navigate("/", { replace: true });
+            } else if (role === "Staff") {
+              // console.log("Navigating to news page...");
+              navigate("/news", { replace: true });
+            }
+          }, 100);
         } else {
-          // Clear token and role for unauthorized users
           localStorage.removeItem("token");
           localStorage.removeItem("role");
           localStorage.removeItem("userId");
           setError("Your account is unauthorized.");
         }
+      } else {
+        setError("Invalid token format received");
       }
     } catch (error) {
-      console.error(error);
-      setError(error.response?.data || "Invalid username or password");
+      console.error("Login error:", error);
+      setError(
+        error.response?.data?.message || 
+        "Failed to connect to server"
+      );
     }
-    */
   };
 
   const handleForgotPassword = () => {
