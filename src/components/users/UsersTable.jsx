@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
-// import axios from "axios"; // Commented out for mock data, re-enable when backend is available
+import axios from "axios";
 import EditUserModal from "./EditUserModal";
 import CreateUserModal from "./CreateUserModal";
 
@@ -17,70 +17,9 @@ const UsersTable = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Mock data for temporary use
-  const mockUsers = [
-    {
-      Id: "1",
-      UserName: "john_doe",
-      Email: "john.doe@example.com",
-      EmailConfirmed: true,
-      PhoneNumber: "1234567890",
-      LockoutEnabled: false,
-      AccessFailedCount: 0,
-      Status: "Active",
-      SubscriptionStatus: "Active",
-    },
-    {
-      Id: "2",
-      UserName: "jane_smith",
-      Email: "jane.smith@example.com",
-      EmailConfirmed: false,
-      PhoneNumber: null,
-      LockoutEnabled: true,
-      AccessFailedCount: 2,
-      Status: "Inactive",
-      SubscriptionStatus: "Inactive",
-    },
-    {
-      Id: "3",
-      UserName: "alice_jones",
-      Email: "alice.jones@example.com",
-      EmailConfirmed: true,
-      PhoneNumber: "0987654321",
-      LockoutEnabled: false,
-      AccessFailedCount: 0,
-      Status: "Active",
-      SubscriptionStatus: "Active",
-    },
-  ];
-
   const fetchUsers = async (search = "", page = 1, size = pageSize) => {
     try {
       setLoading(true);
-
-      // Mock data logic
-      let filteredUsers = mockUsers;
-      if (search) {
-        filteredUsers = mockUsers.filter(
-          (user) =>
-            user.UserName.toLowerCase().includes(search.toLowerCase()) ||
-            user.Email.toLowerCase().includes(search.toLowerCase()) ||
-            user.Status.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-
-      const start = (page - 1) * size;
-      const paginatedUsers = filteredUsers.slice(start, start + size);
-
-      setUsers(paginatedUsers);
-      setTotalCount(filteredUsers.length);
-      setTotalPages(Math.ceil(filteredUsers.length / size));
-      setCurrentPage(page);
-      setError(null);
-      setLoading(false);
-
-      // Backend API call (commented out, re-enable when backend is available)
-      /*
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
@@ -89,7 +28,7 @@ const UsersTable = () => {
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/users`,
+        `${import.meta.env.VITE_API}/UserProfile`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -102,16 +41,33 @@ const UsersTable = () => {
         }
       );
 
-      setUsers(response.data.items);
-      setTotalCount(response.data.totalCount);
-      setTotalPages(Math.ceil(response.data.totalCount / size));
-      setCurrentPage(page);
-      setError(null);
-      setLoading(false);
-      */
+      console.log("API Response:", response.data);
+
+      if (Array.isArray(response.data)) {
+        // Map the API response to match your table structure
+        const mappedUsers = response.data.map(user => ({
+          Id: user.userId || user.id,
+          Fullname: user.fullName || 'N/A',
+          Email: user.email,
+          Role: user.role || 'User',
+          SubscriptionStatus: user.subscriptionId ? 'Active' : 'Inactive'
+        }));
+
+        setUsers(mappedUsers);
+        setTotalCount(mappedUsers.length);
+        setTotalPages(Math.ceil(mappedUsers.length / size));
+        setCurrentPage(page);
+        setError(null);
+      } else {
+        setUsers([]);
+        setTotalCount(0);
+        setTotalPages(0);
+        setError("No data received from server");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to fetch users");
       console.error("Error fetching users:", err);
+      setError(err.response?.data?.message || "Failed to fetch users");
+    } finally {
       setLoading(false);
     }
   };
@@ -175,7 +131,7 @@ const UsersTable = () => {
         )
       );
       setEditUserId(null);
-      */
+      // */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update user");
       console.error("Error updating user:", err);
@@ -207,7 +163,7 @@ const UsersTable = () => {
       );
 
       setUsers(users.filter((user) => user.Id !== id));
-      */
+      // */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete user");
       console.error("Error deleting user:", err);
@@ -215,7 +171,8 @@ const UsersTable = () => {
   };
 
   const handleCreate = (newUser) => {
-    setUsers([{ ...newUser, Id: String(users.length + 1) }, ...users]);
+    setUsers([newUser, ...users]);
+    fetchUsers(searchTerm, currentPage);
     setShowCreateModal(false);
   };
 
@@ -276,7 +233,7 @@ const UsersTable = () => {
                   Email
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Status
+                  Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Subscription
@@ -289,7 +246,10 @@ const UsersTable = () => {
             <tbody className="divide-y divide-gray-700">
               {users.length === 0 ? (
                 <tr>
-                  <td colSpan="5" className="px-6 py-4 text-center text-gray-400">
+                  <td
+                    colSpan="5"
+                    className="px-6 py-4 text-center text-gray-400"
+                  >
                     No users found
                   </td>
                 </tr>
@@ -303,19 +263,30 @@ const UsersTable = () => {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-100">
-                        {user.UserName}
+                        {user.Fullname}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-300">{user.Email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-800 text-green-100">
-                        {user.Status}
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        user.Role === 'Admin' ? 'bg-purple-800 text-purple-100' : 
+                        user.Role === 'Staff' ? 'bg-blue-800 text-blue-100' : 
+                        user.Role === 'Member' ? 'bg-yellow-500 text-yellow-100' :
+                        user.Role === 'User' ? 'bg-green-800 text-green-100' :
+                        'bg-gray-800 text-gray-100'
+                      }`}>
+                        {user.Role}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-300">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        user.SubscriptionStatus === 'Upgrade' ? 'bg-green-800 text-green-100' : 
+                        user.SubscriptionStatus === 'Free' ? 'bg-blue-800 text-blue-100' :
+                        user.SubscriptionStatus === 'None' ? 'bg-black-800 text-black-100' :
+                        'bg-red-800 text-red-100'
+                      }`}>
                         {user.SubscriptionStatus}
                       </span>
                     </td>
