@@ -4,6 +4,7 @@ import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
 import NewsPage from "./pages/NewsPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import ProfilePage from "./pages/ProfilePage";
 import Sidebar from "./components/common/Sidebar";
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordForm from "./components/auth/ForgotPasswordForm";
@@ -38,14 +39,19 @@ function App() {
             <>
               <Route path="/login" element={<LoginPage setUser={setUser} />} />
               <Route path="*" element={<Navigate to="/login" />} />
-              <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+              <Route path="/forgot-password" element={<ForgotPasswordForm />} />             
             </>
           ) : (
             <>
+              {/* Common routes for both roles */}
+              <Route element={<ProtectedRoute user={user} allowedRoles={["Admin", "Staff"]} />}>
+                <Route path="/profile" element={<ProfilePage />} />
+              </Route>
+
               {/* Protect Dashboard: Only Admin can access */}
               <Route element={<ProtectedRoute user={user} allowedRoles={["Admin"]} />}>
                 <Route path="/" element={<DashboardPage />} />
-                <Route path="/users" element={<UsersPage />} />
+                <Route path="/users" element={<UsersPage />} />            
               </Route>
 
               {/* Protect Staff pages: Only Staff can access */}

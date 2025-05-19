@@ -50,20 +50,20 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
   const [emailError, setEmailError] = useState(null);
 
   const handleChange = (e) => {
-      const { name, value } = e.target;
-      setUserData({ ...userData, [name]: value });
-  
-      // Kiểm tra email ngay khi nhập
-      if (name === "email") {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(value)) {
-              setEmailError("Please enter a valid email address.");
-          } else {
-              setEmailError(null);
-          }
+    const { name, value } = e.target;
+    setUserData({ ...userData, [name]: value });
+
+    // Kiểm tra email ngay khi nhập
+    if (name === "email") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        setEmailError("Please enter a valid email address.");
+      } else {
+        setEmailError(null);
       }
+    }
   };
-  
+
   const handleSubmit = async () => {
     try {
       setIsSubmitting(true);
@@ -165,14 +165,13 @@ const EditUserModal = ({ id, onClose, onSave, allUsers }) => {
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
           />
 
-
           <label className="block text-gray-300 mt-4 mb-1">
             Subscription Status
           </label>
           <div className="w-full p-2 rounded bg-gray-700 text-gray-400 border border-gray-600">
             {userData.subscriptionStatus}
           </div>
-          
+
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}

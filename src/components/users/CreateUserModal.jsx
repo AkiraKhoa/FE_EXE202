@@ -16,7 +16,6 @@ const CreateUserModal = ({ onClose, onSave }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData({ ...userData, [name]: value });
-    // Kiểm tra email ngay khi nhập
   };
 
   const handleSubmit = async () => {
@@ -61,8 +60,8 @@ const CreateUserModal = ({ onClose, onSave }) => {
 
       console.log("Response:", response.data); // Debug log
       onSave(response.data);
-      // console.log("User created:", response.data);
       onClose();
+      
     } catch (err) {
       // Kiểm tra nếu có nhiều lỗi từ backend
       const errorMessage = err.response?.data?.error

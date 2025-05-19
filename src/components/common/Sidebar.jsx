@@ -1,4 +1,4 @@
-import { BarChart2, Bell, BookOpen, Users, LogOut, Menu } from "lucide-react";
+import { BarChart2, Bell, BookOpen, Users, LogOut, Menu, Contact } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
@@ -7,10 +7,12 @@ const SIDEBAR_ITEMS = {
   Admin: [
     { name: "Dashboard", icon: BarChart2, color: "#616", href: "/" },
     { name: "Users", icon: Users, color: "#EC4899", href: "/users" },
+    { name: "Profile", icon: Contact, color: "#EC4899", href: "/profile" },
   ],
   Staff: [
     { name: "News", icon: BookOpen, color: "#8B5CF6", href: "/news" },
     { name: "Notification", icon: Bell, color: "#10B981", href: "/notifications" },
+    { name: "Profile", icon: Contact, color: "#EC4899", href: "/profile" },
   ],
 };
 

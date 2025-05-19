@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import axios from "axios";
-import EditUserModal from "./EditUserModal";
+// import EditUserModal from "./EditUserModal";
+import ViewUserProfile from "./ViewUserProfile";
 import CreateUserModal from "./CreateUserModal";
 
 const UsersTable = () => {
@@ -10,7 +11,8 @@ const UsersTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editUserId, setEditUserId] = useState(null);
+  // const [editUserId, setEditUserId] = useState(null);
+  const [viewUserId, setViewUserId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(9);
@@ -45,12 +47,14 @@ const UsersTable = () => {
 
       if (Array.isArray(response.data)) {
         // Map the API response to match your table structure
-        const mappedUsers = response.data.map(user => ({
-          Id: user.userId || user.id,
-          Fullname: user.fullName || 'N/A',
+        const mappedUsers = response.data.map((user) => ({
+          Id: user.upId,
+          Fullname: user.fullName || "N/A",
           Email: user.email,
-          Role: user.role || 'User',
-          SubscriptionStatus: user.subscriptionId ? 'Active' : 'Inactive'
+          Role: user.role,
+          Gender: user.gender || "N/A",
+          Age: user.age || "N/A",
+          SubscriptionStatus: user.subscriptionId ? "Active" : "Inactive",
         }));
 
         setUsers(mappedUsers);
@@ -92,8 +96,12 @@ const UsersTable = () => {
     setCurrentPage(newPage);
   };
 
-  const handleEdit = (id) => {
-    setEditUserId(id);
+  // const handleEdit = (id) => {
+  //   setEditUserId(id);
+  // };
+
+  const handleView = (id) => {
+    setViewUserId(id);
   };
 
   const handleSave = async (updatedUser) => {
@@ -270,32 +278,43 @@ const UsersTable = () => {
                       <div className="text-sm text-gray-300">{user.Email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.Role === 'Admin' ? 'bg-purple-800 text-purple-100' : 
-                        user.Role === 'Staff' ? 'bg-blue-800 text-blue-100' : 
-                        user.Role === 'Member' ? 'bg-yellow-500 text-yellow-100' :
-                        user.Role === 'User' ? 'bg-green-800 text-green-100' :
-                        'bg-gray-800 text-gray-100'
-                      }`}>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          user.Role === "Admin"
+                            ? "bg-purple-800 text-purple-100"
+                            : user.Role === "Staff"
+                            ? "bg-blue-800 text-blue-100"
+                            : user.Role === "Member"
+                            ? "bg-yellow-500 text-yellow-100"
+                            : user.Role === "User"
+                            ? "bg-green-800 text-green-100"
+                            : "bg-gray-800 text-gray-100"
+                        }`}
+                      >
                         {user.Role}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.SubscriptionStatus === 'Upgrade' ? 'bg-green-800 text-green-100' : 
-                        user.SubscriptionStatus === 'Free' ? 'bg-blue-800 text-blue-100' :
-                        user.SubscriptionStatus === 'None' ? 'bg-black-800 text-black-100' :
-                        'bg-red-800 text-red-100'
-                      }`}>
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          user.SubscriptionStatus === "Upgrade"
+                            ? "bg-green-800 text-green-100"
+                            : user.SubscriptionStatus === "Free"
+                            ? "bg-blue-800 text-blue-100"
+                            : user.SubscriptionStatus === "None"
+                            ? "bg-black-800 text-black-100"
+                            : "bg-red-800 text-red-100"
+                        }`}
+                      >
                         {user.SubscriptionStatus}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <button
                         className="text-indigo-400 hover:text-indigo-300 mr-2"
-                        onClick={() => handleEdit(user.Id)}
+                        onClick={() => handleView(user.Id)}
                       >
-                        Edit
+                        View
                       </button>
                       <button
                         className="text-red-400 hover:text-red-300"
@@ -341,11 +360,11 @@ const UsersTable = () => {
           </button>
         </div>
       </div>
-      {editUserId && (
-        <EditUserModal
-          id={editUserId}
-          onClose={() => setEditUserId(null)}
-          onSave={handleSave}
+
+      {viewUserId && (
+        <ViewUserProfile
+          id={viewUserId}
+          onClose={() => setViewUserId(null)}
           allUsers={users}
         />
       )}
@@ -360,3 +379,14 @@ const UsersTable = () => {
 };
 
 export default UsersTable;
+
+{
+  /* {editUserId && (
+        <EditUserModal
+          id={editUserId}
+          onClose={() => setEditUserId(null)}
+          onSave={handleSave}
+          allUsers={users}
+        />
+      )} */
+}

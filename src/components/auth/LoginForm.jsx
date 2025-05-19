@@ -68,7 +68,8 @@ const LoginForm = ({ setUser }) => {
         setError("Invalid token format received");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      // console.error("Login error:", error);
+      // setError("Invalid email or password");
       setError(
         error.response?.data?.message || 
         "Failed to connect to server"
