@@ -18,26 +18,34 @@ const LoginForm = ({ setUser }) => {
     setError("");
 
     try {
-      // console.log("Attempting login with:", formData);
+      console.log("Attempting login with API:", `${import.meta.env.VITE_API}/Auth/login`);
+      
       const response = await axios.post(
         `${import.meta.env.VITE_API}/Auth/login`,
-        formData
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
       );
 
-      // console.log("Response:", response.data);
+      console.log("Login response:", response.data);
 
-      if (response.data.token) {
-        const token = response.data.token
+      if (response.data && response.data.token) {
+        const token = response.data.token;
+        const upId = response.data.upId; // Make sure this matches your API response
+
+        // Store token and upId
         localStorage.setItem("token", token);
+        localStorage.setItem("upId", upId.toString());
 
         // Decode token
         const decoded = jwtDecode(token);
-        // console.log("Decoded token:", decoded); // Debug decoded token
+        console.log("Decoded token:", decoded);
 
         const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-        const userId = decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
-        // console.log("Role:", role); // Debug role
-        // console.log("User ID:", userId); // Debug user ID
+        
         if (!role) {
           throw new Error("Invalid token: missing role claim");
         }
@@ -45,36 +53,41 @@ const LoginForm = ({ setUser }) => {
         // Only set user and navigate if role is authorized
         if (role === "Admin" || role === "Staff") {
           localStorage.setItem("role", role);
-          localStorage.setItem("userId", userId);
-          setUser({ email: formData.email, role });
+          setUser({ email: formData.email, role, upId });
 
-          // Add delay to ensure state updates
-          setTimeout(() => {
-            if (role === "Admin") {
-              // console.log("Navigating to admin dashboard...");
-              navigate("/", { replace: true });
-            } else if (role === "Staff") {
-              // console.log("Navigating to news page...");
-              navigate("/news", { replace: true });
-            }
-          }, 100);
+          // Navigate based on role
+          if (role === "Admin") {
+            navigate("/", { replace: true });
+          } else if (role === "Staff") {
+            navigate("/news", { replace: true });
+          }
         } else {
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          localStorage.removeItem("userId");
+          clearLocalStorage();
           setError("Your account is unauthorized.");
         }
       } else {
-        setError("Invalid token format received");
+        setError("Invalid credentials");
       }
     } catch (error) {
-      // console.error("Login error:", error);
-      // setError("Invalid email or password");
-      setError(
-        error.response?.data?.message || 
-        "Failed to connect to server"
-      );
+      console.error("Login error:", error);
+      
+      if (error.response) {
+        // Get the error message from the API response
+        const errorMessage = error.response.data.error || error.response.data.message || "Invalid email or password";
+        setError(errorMessage);
+      } else if (error.request) {
+        setError("No response from server. Please check your connection.");
+      } else {
+        setError("An error occurred. Please try again.");
+      }
     }
+  };
+
+  // Add a helper function to clear localStorage
+  const clearLocalStorage = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("upId");
   };
 
   const handleForgotPassword = () => {

@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, Phone, Mail, User, Lock, Edit } from "lucide-react";
+import { Upload, Phone, Mail, User, Lock, Edit, Check, X } from "lucide-react";
 import axios from "axios";
 import Header from "../components/common/Header";
+import ChangePasswordModal from "../components/users/ChangePasswordModal";
 
 const ProfilePage = () => {
   const [userData, setUserData] = useState({
@@ -12,28 +13,66 @@ const ProfilePage = () => {
     phone: "",
     profileImage: null
   });
+  const [editMode, setEditMode] = useState(false);
+  const [editedData, setEditedData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
   }, []);
 
+  useEffect(() => {
+    if (editMode) {
+      setEditedData({ ...userData });
+    }
+  }, [editMode]);
+
   const fetchUserProfile = async () => {
     try {
+      setLoading(true);
       const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
+      const upId = localStorage.getItem("upId"); // Changed from userId to upId
       
+      if (!token || !upId) {
+        setError("No authentication token or user ID found");
+        return;
+      }
+
+      // Log the upId and URL for debugging
+      // console.log("Fetching profile for upId:", upId);
+      // console.log("API URL:", `${import.meta.env.VITE_API}/UserProfile/${upId}`);
+
       const response = await axios.get(
-        `${import.meta.env.VITE_API}/UserProfile/${userId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `${import.meta.env.VITE_API}/UserProfile/userProfileMin/${upId}`, // Updated URL to use upId
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
       
-      setUserData(response.data);
-      setError(null);
+      // Log the response data for debugging
+      console.log("API Response:", response.data);
+
+      if (response.data) {
+        setUserData({
+          fullName: response.data.fullName || "",
+          username: response.data.username || "",
+          email: response.data.email || "",
+          phone: response.data.phoneNumber || "", // Changed to match API response
+          profileImage: response.data.profileImage || null,
+          role: response.data.role || ""
+        });
+        setError(null);
+      } else {
+        setError("No user data received");
+      }
     } catch (err) {
-      setError("Failed to fetch profile data");
-      console.error(err);
+      console.error("Error details:", err);
+      setError(err.response?.data?.message || "Failed to fetch profile data");
     } finally {
       setLoading(false);
     }
@@ -44,6 +83,61 @@ const ProfilePage = () => {
     if (file) {
       // Add your image upload logic here
     }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEditedData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const upId = localStorage.getItem("upId");
+      
+      // Format the data to match API expectations
+      const formattedData = {
+        upId: parseInt(upId),
+        fullName: editedData.fullName,
+        username: userData.username, // Keep existing username
+        email: editedData.email,
+        phoneNumber: editedData.phone, // Note: API expects 'phoneNumber' not 'phone'
+        role: userData.role // Keep existing role
+      };
+
+      console.log("Submitting data:", formattedData); // For debugging
+
+      await axios.put(
+        `${import.meta.env.VITE_API}/UserProfile/userProfile/${upId}`,
+        formattedData,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
+      );
+      
+      // Update local state with the new data
+      setUserData({
+        ...userData,
+        fullName: editedData.fullName,
+        email: editedData.email,
+        phone: editedData.phone
+      });
+      setEditMode(false);
+    } catch (err) {
+      console.error("Update error:", err.response?.data || err.message);
+      // Optionally add error handling UI here
+    }
+  };
+
+  const handleDiscard = () => {
+    setEditMode(false);
+    setEditedData({});
   };
 
   if (loading) {
@@ -105,38 +199,93 @@ const ProfilePage = () => {
               <div className="space-y-4">
                 <div className="flex items-center text-gray-300">
                   <User size={20} className="text-gray-400 mr-3" />
-                  <span>{userData.fullName}</span>
+                  {editMode ? (
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={editedData.fullName || ""}
+                      onChange={handleInputChange}
+                      className="bg-gray-600 text-white px-3 py-1 rounded-lg"
+                    />
+                  ) : (
+                    <span>{userData.fullName}</span>
+                  )}
                 </div>
                 <div className="flex items-center text-gray-300">
                   <Mail size={20} className="text-gray-400 mr-3" />
-                  <span>{userData.email}</span>
+                  {editMode ? (
+                    <input
+                      type="email"
+                      name="email"
+                      value={editedData.email || ""}
+                      onChange={handleInputChange}
+                      className="bg-gray-600 text-white px-3 py-1 rounded-lg"
+                    />
+                  ) : (
+                    <span>{userData.email}</span>
+                  )}
                 </div>
                 <div className="flex items-center text-gray-300">
                   <Phone size={20} className="text-gray-400 mr-3" />
-                  <span>{userData.phone || "No phone number added"}</span>
+                  {editMode ? (
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={editedData.phone || ""}
+                      onChange={handleInputChange}
+                      className="bg-gray-600 text-white px-3 py-1 rounded-lg"
+                    />
+                  ) : (
+                    <span>{userData.phone || "No phone number added"}</span>
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex space-x-4">
-              <button
-                onClick={() => {/* Add change password logic */}}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Lock size={16} className="mr-2" />
-                Change Password
-              </button>
-              <button
-                onClick={() => {/* Add edit profile logic */}}
-                className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                <Edit size={16} className="mr-2" />
-                Edit Profile
-              </button>
+              {editMode ? (
+                <>
+                  <button
+                    onClick={handleSubmit}
+                    className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Check size={16} className="mr-2" />
+                    Submit
+                  </button>
+                  <button
+                    onClick={handleDiscard}
+                    className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  >
+                    <X size={16} className="mr-2" />
+                    Discard
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setIsPasswordModalOpen(true)}
+                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Lock size={16} className="mr-2" />
+                    Change Password
+                  </button>
+                  <button
+                    onClick={() => setEditMode(true)}
+                    className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <Edit size={16} className="mr-2" />
+                    Edit Profile
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
+        <ChangePasswordModal 
+          isOpen={isPasswordModalOpen}
+          onClose={() => setIsPasswordModalOpen(false)}
+        />
       </main>
     </div>
   );

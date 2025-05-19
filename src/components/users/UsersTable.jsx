@@ -43,11 +43,29 @@ const UsersTable = () => {
         }
       );
 
-      console.log("API Response:", response.data);
+      // Update this section to handle the response correctly
+      const userData = response.data;
+      
+      // Check if the response has items property
+      if (userData && userData.items) {
+        const mappedUsers = userData.items.map((user) => ({
+          Id: user.upId,
+          Fullname: user.fullName || "N/A",
+          Email: user.email,
+          Role: user.role,
+          Gender: user.gender || "N/A",
+          Age: user.age || "N/A",
+          SubscriptionStatus: user.subscriptionId ? "Active" : "Inactive",
+        }));
 
-      if (Array.isArray(response.data)) {
-        // Map the API response to match your table structure
-        const mappedUsers = response.data.map((user) => ({
+        setUsers(mappedUsers);
+        setTotalCount(userData.totalCount || mappedUsers.length);
+        setTotalPages(Math.ceil((userData.totalCount || mappedUsers.length) / size));
+        setCurrentPage(page);
+        setError(null);
+      } else if (Array.isArray(userData)) {
+        // Fallback for array response
+        const mappedUsers = userData.map((user) => ({
           Id: user.upId,
           Fullname: user.fullName || "N/A",
           Email: user.email,
@@ -66,11 +84,12 @@ const UsersTable = () => {
         setUsers([]);
         setTotalCount(0);
         setTotalPages(0);
-        setError("No data received from server");
+        setError("Invalid data format received from server");
       }
     } catch (err) {
       console.error("Error fetching users:", err);
       setError(err.response?.data?.message || "Failed to fetch users");
+      setUsers([]);
     } finally {
       setLoading(false);
     }

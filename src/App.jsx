@@ -2,7 +2,7 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
-import NewsPage from "./pages/NewsPage";
+import RecipesPage from "./pages/RecipesPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import ProfilePage from "./pages/ProfilePage";
 import Sidebar from "./components/common/Sidebar";
@@ -56,7 +56,7 @@ function App() {
 
               {/* Protect Staff pages: Only Staff can access */}
               <Route element={<ProtectedRoute user={user} allowedRoles={["Staff"]} />}>
-                <Route path="/news" element={<NewsPage />} />
+                <Route path="/recipes" element={<RecipesPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
               </Route>
 

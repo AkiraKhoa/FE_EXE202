@@ -1,71 +1,62 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Phone, Heart, AlertTriangle, Upload } from "lucide-react";
+import { X, Heart, AlertTriangle } from "lucide-react";
 import axios from "axios";
 
 const ViewUserProfile = ({ id, onClose, allUsers }) => {
   const [userData, setUserData] = useState({
     fullName: "",
     username: "",
-    age: "",
-    gender: "",
+    email: "",
+    age: null,
+    gender: null,
     allergies: [],
     healthConditions: [],
-    emergencyContact: {
-      name: "",
-      relation: "",
-      phone: ""
-    },
-    profileImage: null
+    role: "",
+    userId: "",
+    profileImage: null // Add this line
   });
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const currentUser = allUsers.find((user) => user.upId === id);
-    if (currentUser) {
-      setUserData(currentUser);
-      setIsLoading(false);
-    } else {
-      fetchUserById();
-    }
+    fetchUserById();
   }, [id]);
 
   const fetchUserById = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/UserProfile/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `${import.meta.env.VITE_API}/UserProfile/userProfile/${id}`,
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
-      setUserData(response.data);
+      
+      setUserData({
+        fullName: response.data.fullName || "",
+        username: response.data.username || "",
+        email: response.data.email || "",
+        age: response.data.age,
+        gender: response.data.gender,
+        allergies: response.data.allergies || [],
+        healthConditions: response.data.healthConditions || [],
+        role: response.data.role || "",
+        userId: response.data.userId || "",
+        profileImage: response.data.profileImage || null
+      });
       setError(null);
     } catch (err) {
+      console.error("Error fetching user:", err);
       setError("Failed to fetch user details");
     } finally {
       setIsLoading(false);
     }
   };
-
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUserData(prev => ({
-          ...prev,
-          profileImage: reader.result
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Add this before the return statement to debug
-  console.log("Current ID:", id);
-  console.log("All Users:", allUsers);
-  console.log("Current User Data:", userData);
 
   if (isLoading) {
     return (
@@ -133,36 +124,28 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
           {/* Profile Header */}
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-700 mb-3">
+              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-700 mb-3 flex items-center justify-center">
                 {userData.profileImage ? (
                   <img 
                     src={userData.profileImage} 
-                    alt="Profile" 
+                    alt={userData.fullName || "Profile"} 
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = '/default-avatar.png'; // You can add a default avatar image
+                      console.log('Error loading profile image');
+                    }}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Upload size={32} className="text-gray-500" />
+                  <div className="w-full h-full flex items-center justify-center bg-gray-700">
+                    <span className="text-2xl text-gray-400">
+                      {userData.fullName ? userData.fullName.charAt(0).toUpperCase() : 'U'}
+                    </span>
                   </div>
                 )}
               </div>
-              <input
-                type="file"
-                id="profile-upload"
-                className="hidden"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-              <label
-                htmlFor="profile-upload"
-                className="absolute bottom-2 right-0 bg-blue-500 rounded-full p-1 cursor-pointer hover:bg-blue-600"
-              >
-                <Upload size={14} />
-              </label>
             </div>
             <h2 className="text-xl font-semibold text-white">{userData.fullName || "User Profile"}</h2>
             <p className="text-gray-400">@{userData.username || "username"}</p>
-            {/* <p className="text-sm text-gray-500">Member since 2023</p> */}
           </div>
 
           {/* Stats */}
@@ -213,16 +196,21 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
             </div>
           </div>
 
-          {/* Emergency Contact */}
+          {/* Gender & Age Section */}
           <div className="mb-6">
             <div className="flex items-center mb-3">
-              <Phone size={18} className="text-green-400 mr-2" />
-              <h3 className="text-lg font-semibold">Emergency Contact</h3>
+              <Heart size={18} className="text-green-400 mr-2" />
+              <h3 className="text-lg font-semibold">Personal Information</h3>
             </div>
-            <div className="bg-gray-700 rounded-lg p-4">
-              <div className="text-gray-300">{userData.emergencyContact?.name}</div>
-              <div className="text-sm text-gray-400">{userData.emergencyContact?.relation}</div>
-              <div className="text-blue-400 mt-2">{userData.emergencyContact?.phone}</div>
+            <div className="bg-gray-700 rounded-lg p-4 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Gender</span>
+                <span className="text-gray-300">{userData.gender || 'Not specified'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Age</span>
+                <span className="text-gray-300">{userData.age || 'Not specified'}</span>
+              </div>
             </div>
           </div>
         </motion.div>
