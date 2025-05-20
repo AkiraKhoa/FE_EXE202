@@ -26,11 +26,11 @@ const CreateUserModal = ({ onClose, onSave }) => {
         return;
       }
 
+      // Fix email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(value)) {
+      if (!emailRegex.test(userData.email)) {
         setError("Please enter a valid email address.");
-      } else {
-        setError(null);
+        return;
       }
 
       setIsSubmitting(true);
@@ -39,21 +39,24 @@ const CreateUserModal = ({ onClose, onSave }) => {
       const token = localStorage.getItem("token");
 
       // Format the request data to match API expectations
-      // const requestData = {
-      //   email: userData.email,
-      //   password: userData.password,
-      //   fullName: userData.fullName || "",
-      //   role: userData.role,
-      // };
+      const requestData = {
+        email: userData.email,
+        password: userData.password,
+        fullName: userData.fullName || "",
+        username: userData.email, // Add username field, using email as username
+        role: userData.role,
+        subscriptionId: null // Add subscriptionId field if needed
+      };
 
-      // console.log("Sending request with data:", requestData); // Debug log
+      console.log("Sending request with data:", requestData); // Debug log
 
       const response = await axios.post(
         `${import.meta.env.VITE_API}/UserProfile/create`,
-        userData,
+        requestData,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
         }
       );
@@ -63,12 +66,9 @@ const CreateUserModal = ({ onClose, onSave }) => {
       onClose();
       
     } catch (err) {
-      // Kiểm tra nếu có nhiều lỗi từ backend
-      const errorMessage = err.response?.data?.error
-        ? err.response.data.error.split("; ").join("\n") // Chuyển các lỗi thành dòng mới
-        : "Failed to create user";
-      setError(errorMessage);
-      console.error("Error creating user:", err);
+      console.error("Full error:", err); // Add full error logging
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || "Failed to create user";
+      setError(Array.isArray(errorMessage) ? errorMessage.join("\n") : errorMessage);
     } finally {
       setIsSubmitting(false);
     }

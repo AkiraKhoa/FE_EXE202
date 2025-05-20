@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Lock } from "lucide-react";
 import axios from "axios";
+import toast from "react-hot-toast"; // Add this import
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
   const [passwords, setPasswords] = useState({
@@ -22,22 +23,67 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate passwords match
     if (passwords.newPassword !== passwords.confirmPassword) {
-      setError("New passwords do not match");
+      const errorMsg = "New passwords do not match";
+      setError(errorMsg);
+      toast.error(errorMsg, {
+        id: 'password-mismatch',
+      });
+      return;
+    }
+
+    // Validate password length
+    if (passwords.newPassword.length < 6) {
+      const errorMsg = "Password must be at least 6 characters long";
+      setError(errorMsg);
+      toast.error(errorMsg, {
+        id: 'password-length',
+      });
       return;
     }
 
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("upId");
+
       await axios.put(
-        `${import.meta.env.VITE_API}/UserProfile/change-password`,
-        passwords,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `${import.meta.env.VITE_API}/Auth/change-password`,
+        {
+          ...passwords,
+          userId: userId
+        },
+        { 
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          } 
+        }
       );
+
+      // Success notification
+      toast.success("Password changed successfully!", {
+        id: 'password-success',
+        duration: 3000,
+      });
+
+      // Reset form and close modal
+      setPasswords({
+        oldPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
       onClose();
+
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to change password");
+      console.error("Password change error:", err);
+      const errorMsg = err.response?.data?.message || "Failed to change password";
+      setError(errorMsg);
+      toast.error(errorMsg, {
+        id: 'password-error',
+      });
     } finally {
       setLoading(false);
     }

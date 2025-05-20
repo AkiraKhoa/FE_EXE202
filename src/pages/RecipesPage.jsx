@@ -1,5 +1,5 @@
 import Header from "../components/common/Header";
-import RecipesTable from "../components/news/RecipesTable";
+import RecipesTable from "../components/recipe/RecipesTable";
 
 const RecipesPage = () => {
     return (

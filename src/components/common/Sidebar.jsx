@@ -10,7 +10,7 @@ const SIDEBAR_ITEMS = {
     { name: "Profile", icon: Contact, color: "#EC4899", href: "/profile" },
   ],
   Staff: [
-    { name: "News", icon: BookOpen, color: "#8B5CF6", href: "/news" },
+    { name: "Recipes", icon: BookOpen, color: "#8B5CF6", href: "/recipes" },
     { name: "Notification", icon: Bell, color: "#10B981", href: "/notifications" },
     { name: "Profile", icon: Contact, color: "#EC4899", href: "/profile" },
   ],

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Upload, Phone, Mail, User, Lock, Edit, Check, X } from "lucide-react";
 import axios from "axios";
+import toast from "react-hot-toast"; // Add this import
 import Header from "../components/common/Header";
 import ChangePasswordModal from "../components/users/ChangePasswordModal";
 
@@ -102,13 +103,14 @@ const ProfilePage = () => {
       const formattedData = {
         upId: parseInt(upId),
         fullName: editedData.fullName,
-        username: userData.username, // Keep existing username
+        username: userData.username,
         email: editedData.email,
-        phoneNumber: editedData.phone, // Note: API expects 'phoneNumber' not 'phone'
-        role: userData.role // Keep existing role
+        phoneNumber: editedData.phone,
+        role: userData.role
       };
 
-      console.log("Submitting data:", formattedData); // For debugging
+      // Show loading toast
+      const loadingToastId = toast.loading("Updating profile...");
 
       await axios.put(
         `${import.meta.env.VITE_API}/UserProfile/userProfile/${upId}`,
@@ -128,16 +130,43 @@ const ProfilePage = () => {
         email: editedData.email,
         phone: editedData.phone
       });
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToastId);
+      toast.success("Profile updated successfully!", {
+        duration: 3000,
+        style: {
+          background: '#1f2937',
+          color: '#fff',
+        },
+      });
+
       setEditMode(false);
     } catch (err) {
       console.error("Update error:", err.response?.data || err.message);
-      // Optionally add error handling UI here
+      
+      // Show error toast
+      toast.error(err.response?.data?.message || "Failed to update profile", {
+        duration: 3000,
+        style: {
+          background: '#1f2937',
+          color: '#fff',
+        },
+      });
     }
   };
 
   const handleDiscard = () => {
     setEditMode(false);
     setEditedData({});
+    toast("Changes discarded", {
+      icon: '🔄',
+      duration: 2000,
+      style: {
+        background: '#1f2937',
+        color: '#fff',
+      },
+    });
   };
 
   if (loading) {
