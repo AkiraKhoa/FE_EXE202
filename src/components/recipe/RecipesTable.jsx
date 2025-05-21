@@ -1,9 +1,69 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Star, StarHalf } from "lucide-react";
 import axios from "axios";
 import EditRecipeModal from "./EditRecipeModal";
 import CreateRecipesModal from "./CreateRecipesModal";
+import ReactCountryFlag from "react-country-flag";
+
+const renderStars = (rating) => {
+  const stars = [];
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 !== 0;
+
+  // Add full stars
+  for (let i = 0; i < fullStars; i++) {
+    stars.push(
+      <Star
+        key={`star-${i}`}
+        size={16}
+        className="text-yellow-400 fill-yellow-400"
+      />
+    );
+  }
+
+  // Add half star if needed
+  if (hasHalfStar) {
+    stars.push(
+      <StarHalf
+        key="half-star"
+        size={16}
+        className="text-yellow-400 fill-yellow-400"
+      />
+    );
+  }
+
+  // Add empty stars
+  const emptyStars = 5 - Math.ceil(rating);
+  for (let i = 0; i < emptyStars; i++) {
+    stars.push(
+      <Star
+        key={`empty-star-${i}`}
+        size={16}
+        className="text-gray-600"
+      />
+    );
+  }
+
+  return stars;
+};
+
+const getCountryCode = (nation) => {
+  const countryMap = {
+    Vietnam: "VN",
+    Japan: "JP",
+    Korea: "KR",
+    China: "CN",
+    Thailand: "TH",
+    Italy: "IT",
+    France: "FR",
+    Spain: "ES",
+    India: "IN",
+    Mexico: "MX",
+    // Add more mappings as needed
+  };
+  return countryMap[nation] || "UN"; // UN as fallback
+};
 
 const RecipesTable = () => {
   const [Recipes, setRecipes] = useState([]);
@@ -176,18 +236,6 @@ const RecipesTable = () => {
     }
   };
 
-  // Format date function
-  // const formatDate = (dateString) => {
-  //   if (!dateString) return "Not Scheduled";
-  //   try {
-  //     const cleanedDate = dateString.split(".")[0].replace("T", "-");
-  //     return cleanedDate;
-  //   } catch (e) {
-  //     console.error("Date formatting error:", e, "for date:", dateString);
-  //     return "Invalid Date";
-  //   }
-  // };
-
   return (
     <motion.div
       className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700 min-h-screen"
@@ -289,7 +337,6 @@ const RecipesTable = () => {
                     !searchTerm ||
                     item?.RecipeName?.toLowerCase().includes(searchTerm) ||
                     item?.Meals?.toLowerCase().includes(searchTerm)
-                  // item?.DifficultyEstimation?.toLowerCase().includes(searchTerm)
                 ).map((item) => (
                   <motion.tr
                     key={item.id}
@@ -304,47 +351,35 @@ const RecipesTable = () => {
                           : item.RecipeName}
                       </div>
                     </td>
-                    {/* <td className="px-5 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300 truncate w-64">
-                        {item.Meals.length > 55
-                          ? item.Meals.substring(0, 55) + "..."
-                          : item.Meals}
-                      </div>
-                    </td> */}
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
                         {item.Meals}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
+                      <span className="px-2 inline-flex items-center gap-2 text-xs leading-5 font-semibold rounded-full bg-gray-800 text-gray-100">
+                        <ReactCountryFlag
+                          countryCode={getCountryCode(item.Nation)}
+                          svg
+                          style={{
+                            width: "1.2em",
+                            height: "1.2em",
+                          }}
+                          title={item.Nation}
+                        />
                         {item.Nation}
                       </span>
                     </td>
-                    {/* <td className="px-5 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-300">
-                        {formatDate(
-                          item.lastEdited ? item.lastEdited : item.createdDate
-                        )}
-                      </span>
-                    </td> */}
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
-                        {item.DifficultyEstimation}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        {renderStars(parseFloat(item.DifficultyEstimation))}
+                      </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
                         {item.TimeEstimation}
                       </span>
                     </td>
-                    {/* <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-300">
-                        {item.url.length > 25
-                          ? item.url.substring(0, 25) + "..."
-                          : item.url}
-                      </span>
-                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <button
                         className="text-indigo-400 hover:text-indigo-300 mr-2"
