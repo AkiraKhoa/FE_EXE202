@@ -120,12 +120,12 @@ const RecipesTable = () => {
 
       // For testing without API
       // Comment this out when you have the real API
-      setRecipes([]); // or some mock data
-      setTotalCount(0);
-      setTotalPages(1);
-      setError(null);
+      // setRecipes([]); // or some mock data
+      // setTotalCount(0);
+      // setTotalPages(1);
+      // setError(null);
 
-      /* Uncomment when API is ready
+      // /* Uncomment when API is ready
       const response = await axios.get(`${import.meta.env.VITE_API_URL}/Recipes`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -139,7 +139,7 @@ const RecipesTable = () => {
       setRecipes(response.data.items || []);
       setTotalCount(response.data.totalCount || 0);
       setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
-      */
+      // */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch data");
       setRecipes([]); // Ensure Recipes is at least an empty array

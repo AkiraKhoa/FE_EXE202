@@ -9,19 +9,15 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
   const [recipeData, setRecipeData] = useState({
     recipeName: "",
     meals: "",
-    difficultyEstimation: 1,
-    timeEstimation: "",
+    difficultyEstimation: 0,
+    timeEstimation: 0, // Changed from string to number
     nation: "",
     ingredients: [
-      { ingredient: "", amount: "", measureUnit: "" },
-      { ingredient: "", amount: "", measureUnit: "" },
-      { ingredient: "", amount: "", measureUnit: "" }
+      { ingredient: "", amount: "", defaultUnit: "" }
     ],
-    videoLink: "",
+    instructionVideoLink: "",
     steps: [
-      { stepNumber: 1, instruction: "" },
-      { stepNumber: 2, instruction: "" },
-      { stepNumber: 3, instruction: "" }
+      { stepNumber: 1, instruction: "" }
     ]
   });
 
@@ -29,12 +25,22 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
   const [error, setError] = useState(null);
 
   const handleChange = (e) => {
-    setRecipeData({ ...recipeData, [e.target.name]: e.target.value });
+    const value = e.target.type === 'number' || e.target.name === 'timeEstimation' 
+      ? Number(e.target.value) 
+      : e.target.value;
+    
+    setRecipeData({ 
+      ...recipeData, 
+      [e.target.name]: value 
+    });
   };
 
-  const handleStarClick = (rating) => {
-    setRecipeData({ ...recipeData, difficultyEstimation: rating });
-  };
+const handleStarClick = (rating) => {
+  setRecipeData({ 
+    ...recipeData, 
+    difficultyEstimation: Number(rating) 
+  });
+};
 
   const renderStars = () => {
     return [1, 2, 3, 4, 5].map((rating) => (
@@ -69,11 +75,11 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
   useEffect(() => {
     const fetchIngredients = async () => {
       try {
-        // Replace with your actual API endpoint
-        const response = await axios.get('/api/ingredients');
-        setIngredientsList(response.data);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/Ingredients`);
+        setIngredientsList(response.data); // Now contains items, page, pageSize, etc.
       } catch (error) {
         console.error('Error fetching ingredients:', error);
+        setError('Failed to fetch ingredients');
       }
     };
 
@@ -85,7 +91,20 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
   // Handle ingredient change
   const handleIngredientChange = (index, field, value) => {
     const newIngredients = [...recipeData.ingredients];
-    newIngredients[index][field] = value;
+    if (field === "ingredient") {
+      const selectedIngredient = ingredientsList.items.find(
+        ing => ing.ingredientName === value
+      );
+      if (selectedIngredient) {
+        newIngredients[index] = {
+          ...newIngredients[index],
+          ingredient: selectedIngredient.ingredientName,
+          defaultUnit: selectedIngredient.defaultUnit
+        };
+      }
+    } else {
+      newIngredients[index][field] = value;
+    }
     setRecipeData({ ...recipeData, ingredients: newIngredients });
   };
 
@@ -93,14 +112,14 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
   const addIngredientLine = () => {
     setRecipeData({
       ...recipeData,
-      ingredients: [...recipeData.ingredients, { ingredient: "", amount: "", measureUnit: "" }]
+      ingredients: [...recipeData.ingredients, { ingredient: "", amount: "", defaultUnit: "" }]
     });
   };
 
   // Validate second step
   const validateSecondStep = () => {
     const hasEmptyFields = recipeData.ingredients.some(
-      ing => !ing.ingredient || !ing.amount || !ing.measureUnit
+      ing => !ing.ingredient || !ing.amount || !ing.defaultUnit
     );
     if (hasEmptyFields) {
       setError("Please fill in all ingredient fields");
@@ -128,7 +147,7 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
 
   // Validate third step
   const validateThirdStep = () => {
-    if (!recipeData.videoLink) {
+    if (!recipeData.instructionVideoLink) {
       setError("Please provide a video link");
       return false;
     }
@@ -146,14 +165,42 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
     setError(null);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 1 && validateFirstStep()) {
       setCurrentStep(currentStep + 1);
     } else if (currentStep === 2 && validateSecondStep()) {
       setCurrentStep(currentStep + 1);
     } else if (currentStep === 3 && validateThirdStep()) {
-      // Handle form submission here
-      console.log("Form submitted:", recipeData);
+      try {
+        setIsSubmitting(true);
+        setError(null);
+
+        const token = localStorage.getItem("token");
+        if (!token) {
+          setError("No authentication token found");
+          return;
+        }
+
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/Recipes`,
+          recipeData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+          }
+        );
+
+        console.log("Recipe created:", response.data);
+        onSave(response.data);
+        onClose();
+      } catch (err) {
+        console.error("Error creating recipe:", err);
+        setError(err.response?.data?.message || "Failed to create recipe");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -264,12 +311,12 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
                   required
                 >
                   <option value="">Select preparation time</option>
-                  <option value="15 mins">15 minutes</option>
-                  <option value="30 mins">30 minutes</option>
-                  <option value="45 mins">45 minutes</option>
-                  <option value="1 hour">1 hour</option>
-                  <option value="1.5 hours">1.5 hours</option>
-                  <option value="2+ hours">2+ hours</option>
+                  <option value={15}>15 minutes</option>
+                  <option value={30}>30 minutes</option>
+                  <option value={45}>45 minutes</option>
+                  <option value={60}>1 hour</option>
+                  <option value={90}>1.5 hours</option>
+                  <option value={120}>2+ hours</option>
                 </select>
               </div>
 
@@ -315,9 +362,9 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
                     className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select ingredient</option>
-                    {ingredientsList.map((ing) => (
-                      <option key={ing.id} value={ing.name}>
-                        {ing.name}
+                    {ingredientsList.items?.map((ing) => (
+                      <option key={ing.ingredientId} value={ing.ingredientName}>
+                        {ing.ingredientName}
                       </option>
                     ))}
                   </select>
@@ -330,8 +377,8 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
                   />
                   <input
                     type="text"
-                    value={ingredient.measureUnit}
-                    onChange={(e) => handleIngredientChange(index, "measureUnit", e.target.value)}
+                    value={ingredient.defaultUnit}
+                    onChange={(e) => handleIngredientChange(index, "defaultUnit", e.target.value)}
                     placeholder="Unit"
                     className="w-20 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
                   />
@@ -370,8 +417,8 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
                 <label className="block text-gray-300 mb-1">Video Link *</label>
                 <input
                   type="url"
-                  value={recipeData.videoLink}
-                  onChange={(e) => setRecipeData({ ...recipeData, videoLink: e.target.value })}
+                  value={recipeData.instructionVideoLink}
+                  onChange={(e) => setRecipeData({ ...recipeData, instructionVideoLink: e.target.value })}
                   placeholder="Enter video URL"
                   className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
                 />
