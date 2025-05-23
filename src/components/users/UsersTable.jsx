@@ -158,7 +158,7 @@ const UsersTable = () => {
         )
       );
       setEditUserId(null);
-      // */
+      */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update user");
       console.error("Error updating user:", err);
@@ -170,10 +170,10 @@ const UsersTable = () => {
 
     try {
       // Mock delete logic
-      setUsers(users.filter((user) => user.Id !== id));
+      // setUsers(users.filter((user) => user.Id !== id));
 
       // Backend API call (commented out, re-enable when backend is available)
-      /*
+      // /*
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");

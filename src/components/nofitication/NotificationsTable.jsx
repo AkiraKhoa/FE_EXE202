@@ -15,7 +15,7 @@ const NotificationsTable = () => {
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(9);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -61,14 +61,14 @@ const NotificationsTable = () => {
 
       // For testing without API
       // Comment this out when you have the real API
-      setNotifications([]); // or some mock data
-      setTotalCount(0);
-      setTotalPages(1);
-      setError(null);
+      // setNotifications([]); // or some mock data
+      // setTotalCount(0);
+      // setTotalPages(1);
+      // setError(null);
 
-      /* Uncomment when API is ready
+      // /* Uncomment when API is ready
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/notifications`,
+        `${import.meta.env.VITE_API_URL}/Notifications`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -85,7 +85,7 @@ const NotificationsTable = () => {
       setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
       setCurrentPage(page);
       setError(null);
-      */
+      // */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch data");
       setNotifications([]); // Ensure notifications is at least an empty array
@@ -105,6 +105,9 @@ const NotificationsTable = () => {
   //Update noti API call
   const handleSave = async (updatedNoti) => {
     try {
+      // Add console log to see the updatedNoti data
+      console.log("Updated Notification Data:", updatedNoti);
+      
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
@@ -112,13 +115,15 @@ const NotificationsTable = () => {
       }
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/notifications/
-        ${updatedNoti.notificationId}`,
+        `${import.meta.env.VITE_API_URL}/Notifications/${updatedNoti.notificationId}`,
         updatedNoti,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
+      // Add console log to see the response data
+      console.log("API Response Data:", response.data);
 
       setNotifications(
         notifications.map((item) =>
@@ -129,9 +134,9 @@ const NotificationsTable = () => {
       );
       setEditNotificationId(null);
     } catch (err) {
+      console.error("Full error object:", err);
       setError(err.response?.data?.message || "Failed to update notifcations");
       clearError();
-      console.error("Error updating notification: ", err);
     }
   };
 
@@ -168,7 +173,7 @@ const NotificationsTable = () => {
       }
 
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/notifications/${notificationId}`,
+        `${import.meta.env.VITE_API_URL}/Notifications/${notificationId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -192,6 +197,7 @@ const NotificationsTable = () => {
   const handleCreate = async (newNoti) => {
     try {
       setNotifications([newNoti, ...notifications]);
+      fetchNoti(searchTerm, currentPage);
       setShowCreateModal(false);
     } catch (err) {
       console.error("Error adding new notifications to list: ", err);
@@ -308,7 +314,7 @@ const NotificationsTable = () => {
                   .filter(
                     (item) =>
                       !searchTerm ||
-                      item?.content?.toLowerCase().includes(searchTerm) ||
+                      item?.body?.toLowerCase().includes(searchTerm) ||
                       item?.title?.toLowerCase().includes(searchTerm)
                   )
                   .map((item) => (
@@ -328,9 +334,9 @@ const NotificationsTable = () => {
 
                       <td className="px-5 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
-                          {item.content.length > 35
-                            ? item.content.substring(0, 35) + "..."
-                            : item.content}
+                          {item.body.length > 35
+                            ? item.body.substring(0, 35) + "..."
+                            : item.body}
                         </div>
                       </td>
 
@@ -352,7 +358,7 @@ const NotificationsTable = () => {
 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm text-gray-300">
-                          {formatDate(item.createdDate)}
+                          {formatDate(item.createdAt)}
                         </span>
                       </td>
 

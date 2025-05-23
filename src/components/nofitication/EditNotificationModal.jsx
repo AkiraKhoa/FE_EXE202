@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import axios from "axios";
 
+const formatDateForInput = (isoString) => {
+  if (!isoString) return '';
+  return new Date(isoString).toISOString().slice(0, 16);
+};
+
 const EditNotificationModal = ({
   notificationId,
   onClose,
@@ -23,12 +28,6 @@ const EditNotificationModal = ({
       setNotificationData({ ...currentNoti, type: "Global" });
       setScheduleOption(currentNoti.scheduledTime ? "schedule" : "immediate");
       setInitialStatus(currentNoti.status); 
-      // If the notification is Active, set error and stop loading
-      // if (currentNoti.status === "Active") {
-      //   setError("Cannot edit a notification that has been sent!");
-      //   setIsLoading(false);
-      //   return; // Prevent further processing
-      // }
       setIsLoading(false);
     } else {
       fetchNotiById();
@@ -45,7 +44,7 @@ const EditNotificationModal = ({
       }
 
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/notifications/${notificationId}`,
+        `${import.meta.env.VITE_API_URL}/Notifications/${notificationId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -73,10 +72,11 @@ const EditNotificationModal = ({
   };
 
   const handleChange = (e) => {
-    setNotificationData({
-      ...notificationData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setNotificationData(prev => ({
+      ...prev,
+      [name]: name === 'scheduledTime' ? new Date(value).toISOString() : value,
+    }));
   };
 
   const handleScheduleOptionChange = (e) => {
@@ -84,15 +84,21 @@ const EditNotificationModal = ({
     setScheduleOption(option);
     setNotificationData((prev) => ({
       ...prev,
-      scheduledTime: option === "immediate" ? null : prev.scheduledTime || "",
+      scheduledTime: option === "immediate" ? null : prev.scheduledTime,
       status: option === "immediate" ? "Active" : "Pending",
     }));
   };
 
   const validateScheduledTime = (scheduledTime) => {
-    if (!scheduledTime) return true;
-    const scheduledDate = new Date(scheduledTime + "Z");
+    if (scheduleOption === "immediate") return true;
+    if (!scheduledTime) {
+      setError("Scheduled time is required when scheduling for later.");
+      return false;
+    }
+    
+    const scheduledDate = new Date(scheduledTime);
     const now = new Date();
+    
     if (scheduledDate < now) {
       setError("Scheduled time cannot be in the past.");
       return false;
@@ -105,7 +111,6 @@ const EditNotificationModal = ({
       setIsSubmitting(true);
       setError(null);
 
-      // Validate ScheduledTime if "schedule" option is selected
       if (
         scheduleOption === "schedule" &&
         !validateScheduledTime(notificationData.scheduledTime)
@@ -114,14 +119,20 @@ const EditNotificationModal = ({
         return;
       }
 
+      // Format scheduled time properly
+      const formattedScheduledTime = 
+        scheduleOption === "immediate" 
+          ? null 
+          : new Date(notificationData.scheduledTime).toISOString();
+
       const updatedData = {
         ...notificationData,
         type: "Global",
-        scheduledTime: scheduleOption === "immediate" ? null : notificationData.scheduledTime,
+        scheduledTime: formattedScheduledTime,
         status: scheduleOption === "immediate" ? "Active" : "Pending",
       };
-
-      onSave(updatedData); // Pass updated data to parent
+      
+      onSave(updatedData);
       onClose();
     } catch (err) {
       setError("Failed to save changes");
@@ -227,8 +238,8 @@ const EditNotificationModal = ({
 
           <label className="block text-gray-300 mb-1">Content</label>
           <textarea
-            name="content"
-            value={notificationData.content || ""}
+            name="body"
+            value={notificationData.body || ""}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
             placeholder="Enter notification content"
@@ -258,7 +269,7 @@ const EditNotificationModal = ({
               <input
                 type="datetime-local"
                 name="scheduledTime"
-                value={notificationData.scheduledTime || ""}
+                value={formatDateForInput(notificationData.scheduledTime)}
                 onChange={handleChange}
                 className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-4"
                 disabled={isInitiallyActive} 

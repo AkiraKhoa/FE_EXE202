@@ -1,18 +1,15 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { title } from "framer-motion/client";
 import axios from "axios";
 
 const CreateNotificationModal = ({ onClose, onSave }) => {
   const [notificationData, setNotificationData] = useState({
-    staffId: localStorage.getItem("userId"),
     title: "",
-    content: "",
+    body: "",
     type: "Global",
-    scheduledTime: null,
     status: "Active",
-    createdDate: new Date().toISOString().split("-")[0],
+    scheduledTime: null,
   });
 
   const [scheduleOption, setScheduleOption] = useState("immediate");
@@ -29,22 +26,23 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
   const handleScheduleOptionChange = (e) => {
     const option = e.target.value;
     setScheduleOption(option);
-    // Reset scheduledTime when switching options
     setNotificationData((prev) => ({
       ...prev,
       scheduledTime: option === "immediate" ? null : prev.scheduledTime,
-      status: option === "immediate" ? "Active" : "Pending", // Set status based on option
+      status: option === "immediate" ? "Active" : "Pending",
     }));
   };
 
   const validateScheduledTime = (scheduledTime) => {
     if (scheduleOption === "immediate") return true;
-    if (!scheduledTime){
+    if (!scheduledTime) {
       setError("Scheduled time is required when scheduling for later.");
-      return false
-    }; // No scheduledTime is valid (will send immediately)
-    const scheduledDate = new Date(scheduledTime + "Z");
+      return false;
+    }
+    
+    const scheduledDate = new Date(scheduledTime);
     const now = new Date();
+    
     if (scheduledDate < now) {
       setError("Scheduled time cannot be in the past.");
       return false;
@@ -72,25 +70,29 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
         return;
       }
 
-      // Prepare data, only include scheduledTime if a value is provided
+      // Let the backend handle immediate notifications' scheduledTime
+      const formattedScheduledTime = 
+        scheduleOption === "immediate" 
+          ? null 
+          : new Date(notificationData.scheduledTime).toISOString();
+
       const payload = {
-        staffId: notificationData.staffId,
         title: notificationData.title,
-        content: notificationData.content,
-        type: "Global",
-        createdDate: notificationData.createdDate,
-        scheduledTime: notificationData.scheduledTime || null,
+        body: notificationData.body,
+        type: notificationData.type,
         status: notificationData.status,
+        scheduledTime: formattedScheduledTime,  // Send null for immediate, ISO string for scheduled
       };
 
-      console.log(payload);
+      console.log("Sending payload:", payload); // For debugging
 
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/notifications`,
+        `${import.meta.env.VITE_API_URL}/Notifications`,
         payload,
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
         }
       );
@@ -98,15 +100,11 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
       onSave(response.data);
       onClose();
     } catch (err) {
+      console.error("Full error:", err);
       setError(
         err.response?.data?.message ||
           "An error occurred while creating the notification"
       );
-      console.error("Error creating notification:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-      });
     } finally {
       setIsSubmitting(false);
     }
@@ -162,8 +160,8 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
 
           <label className="block text-gray-300 mb-1">Content</label>
           <textarea
-            name="content"
-            value={notificationData.content || ""}
+            name="body"
+            value={notificationData.body || ""}
             onChange={handleChange}
             className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
             placeholder="Enter notification content"
