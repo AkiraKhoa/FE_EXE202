@@ -134,8 +134,21 @@ const handleStarClick = (rating) => {
     const newStepNumber = recipeData.steps.length + 1;
     setRecipeData({
       ...recipeData,
-      steps: [...recipeData.steps, { stepNumber: newStepNumber, instruction: "" }]
+      steps: [
+        ...recipeData.steps,
+        { stepNumber: newStepNumber, instruction: "" },
+      ],
     });
+  
+    
+    // Scroll within the modal container
+    setTimeout(() => {
+      const elements = modalContainer.querySelectorAll('textarea');
+      const lastElement = elements[elements.length - 1];
+      if (lastElement) {
+        lastElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 100);
   };
 
   // Handle step instruction change
@@ -204,16 +217,34 @@ const handleStarClick = (rating) => {
     }
   };
 
+  // Add these functions after other state declarations
+  const handleDeleteIngredient = (index) => {
+    const newIngredients = recipeData.ingredients.filter((_, i) => i !== index);
+    setRecipeData({ ...recipeData, ingredients: newIngredients });
+  };
+
+  const handleDeleteStep = (index) => {
+    const newSteps = recipeData.steps.filter((_, i) => i !== index);
+    // Recalculate step numbers
+    const updatedSteps = newSteps.map((step, i) => ({
+      ...step,
+      stepNumber: i + 1
+    }));
+    setRecipeData({ ...recipeData, steps: updatedSteps });
+  };
+
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-      >
+<AnimatePresence>
+    <motion.div
+      className="fixed inset-0 z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
+      <div className="fixed inset-0 flex items-center justify-center pointer-events-none pb-[120px]">
         <motion.div
-          className="bg-gray-800 rounded-xl p-6 w-[500px] shadow-2xl border border-gray-700"
+          className="relative bg-gray-800 rounded-xl p-6 w-[500px] shadow-2xl border border-gray-700 max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800 pointer-events-auto"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 50, opacity: 0 }}
@@ -287,10 +318,10 @@ const handleStarClick = (rating) => {
                   required
                 >
                   <option value="">Select a meal type</option>
-                  <option value="Breakfast">Breakfast</option>
-                  <option value="Lunch">Lunch</option>
-                  <option value="Dinner">Dinner</option>
-                  <option value="Snack">Snack</option>
+                  <option value="breakfast">Breakfast</option>
+                  <option value="lunch">Lunch</option>
+                  <option value="dinner">Dinner</option>
+                  <option value="snack">Snack</option>
                 </select>
               </div>
 
@@ -354,36 +385,47 @@ const handleStarClick = (rating) => {
           {/* Step 2: Ingredients */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              {recipeData.ingredients.map((ingredient, index) => (
-                <div key={index} className="flex gap-2">
-                  <select
-                    value={ingredient.ingredient}
-                    onChange={(e) => handleIngredientChange(index, "ingredient", e.target.value)}
-                    className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select ingredient</option>
-                    {ingredientsList.items?.map((ing) => (
-                      <option key={ing.ingredientId} value={ing.ingredientName}>
-                        {ing.ingredientName}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    value={ingredient.amount}
-                    onChange={(e) => handleIngredientChange(index, "amount", e.target.value)}
-                    placeholder="Amount"
-                    className="w-20 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    value={ingredient.defaultUnit}
-                    onChange={(e) => handleIngredientChange(index, "defaultUnit", e.target.value)}
-                    placeholder="Unit"
-                    className="w-20 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              ))}
+              {recipeData.ingredients.map((ingredient, index) => {
+                // Filter out already selected ingredients
+                const availableIngredients = ingredientsList.items?.filter(
+                  (ing) => !recipeData.ingredients.some(
+                    (existing, i) => i !== index && existing.ingredient === ing.ingredientName
+                  )
+                );
+
+                return (
+                  <div key={index} className="flex gap-2 items-center">
+                    <select
+                      value={ingredient.ingredient}
+                      onChange={(e) => handleIngredientChange(index, "ingredient", e.target.value)}
+                      className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select ingredient</option>
+                      {availableIngredients?.map((ing) => (
+                        <option key={ing.ingredientId} value={ing.ingredientName}>
+                          {ing.ingredientName}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      value={ingredient.amount}
+                      onChange={(e) => handleIngredientChange(index, "amount", e.target.value)}
+                      placeholder="Amount"
+                      className="w-32 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    />
+                    <div className="w-16 h-10 p-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center truncate">
+                      {ingredient.defaultUnit}
+                    </div>
+                    <button
+                      onClick={() => handleDeleteIngredient(index)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  </div>
+                );
+              })}
               <button
                 onClick={addIngredientLine}
                 className="w-full mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
@@ -428,8 +470,16 @@ const handleStarClick = (rating) => {
                 <label className="block text-gray-300">Steps *</label>
                 {recipeData.steps.map((step, index) => (
                   <div key={index} className="space-y-2">
-                    <div className="text-gray-300">Step {step.stepNumber}</div>
-                    <textarea
+                    <div className="flex items-center justify-between">
+                      <div className="text-gray-300">Step {step.stepNumber}</div>
+                      <button
+                        onClick={() => handleDeleteStep(index)}
+                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                    <input
                       value={step.instruction}
                       onChange={(e) => handleStepChange(index, e.target.value)}
                       placeholder={`Enter instructions for step ${step.stepNumber}`}
@@ -467,6 +517,7 @@ const handleStarClick = (rating) => {
             </div>
           )}
         </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );

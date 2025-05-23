@@ -309,7 +309,7 @@ const RecipesTable = () => {
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Nation
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                   Difficulty Estimation
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
@@ -324,60 +324,58 @@ const RecipesTable = () => {
             <tbody className="divide-y divide-gray-700">
               {!Recipes || Recipes.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="px-6 py-4 text-center text-gray-400"
-                  >
+                  <td colSpan="6" className="px-6 py-4 text-center text-gray-400">
                     {loading ? "Loading..." : "No Recipes articles found"}
                   </td>
                 </tr>
               ) : (
                 Recipes.filter(
                   (item) =>
-                    !searchTerm ||
-                    item?.RecipeName?.toLowerCase().includes(searchTerm) ||
-                    item?.Meals?.toLowerCase().includes(searchTerm)
+                    item && // Add this check
+                    (!searchTerm ||
+                      (item.recipeName && item.recipeName.toLowerCase().includes(searchTerm)) ||
+                      (item.Meals && item.Meals.toLowerCase().includes(searchTerm)))
                 ).map((item) => (
                   <motion.tr
-                    key={item.id}
+                    key={item.RecipesId}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
                     <td className="px-5 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-100">
-                        {item.RecipeName.length > 25
-                          ? item.RecipeName.substring(0, 25) + "..."
-                          : item.RecipeName}
+                        {item.recipeName && item.recipeName.length > 25
+                          ? item.recipeName.substring(0, 25) + "..."
+                          : item.recipeName || ""}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
-                        {item.Meals}
+                        {item.meals}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex items-center gap-2 text-xs leading-5 font-semibold rounded-full bg-gray-800 text-gray-100">
                         <ReactCountryFlag
-                          countryCode={getCountryCode(item.Nation)}
+                          countryCode={getCountryCode(item.nation)}
                           svg
                           style={{
                             width: "1.2em",
                             height: "1.2em",
                           }}
-                          title={item.Nation}
+                          title={item.nation}
                         />
-                        {item.Nation}
+                        {item.nation}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-1">
-                        {renderStars(parseFloat(item.DifficultyEstimation))}
+                        {renderStars(parseFloat(item.difficultyEstimation))}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
-                        {item.TimeEstimation}
+                        {item.timeEstimation}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
