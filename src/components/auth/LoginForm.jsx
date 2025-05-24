@@ -105,14 +105,14 @@ const LoginForm = ({ setUser }) => {
       >
         <h1 className="text-7xl font-bold text-orange-400">App Chảo</h1>
         <img
-          src="/pan.png"
+          src="/favicon.png"
           alt="App Chảo Icon"
-          className="ml-2 h-[180px] w-[180px]"
+          className="ml-2 h-[120px] w-[120px]"
         />
       </motion.div>
 
       {/* Form Section - With blur effect contained within */}
-      <div className="relative w-96">
+      <div className="relative w-96 pt-3">
         <div className="absolute inset-0 bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl"></div>
         <motion.div
           className="relative z-0 p-8 border border-gray-700 rounded-xl"
