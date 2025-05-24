@@ -37,11 +37,7 @@ const renderStars = (rating) => {
   const emptyStars = 5 - Math.ceil(rating);
   for (let i = 0; i < emptyStars; i++) {
     stars.push(
-      <Star
-        key={`empty-star-${i}`}
-        size={16}
-        className="text-gray-600"
-      />
+      <Star key={`empty-star-${i}`} size={16} className="text-gray-600" />
     );
   }
 
@@ -126,16 +122,19 @@ const RecipesTable = () => {
       // setError(null);
 
       // /* Uncomment when API is ready
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/Recipes`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        params: {
-          searchTerm: search,
-          page: page,
-          pageSize: size,
-        },
-      });
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/Recipes`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            searchTerm: search,
+            page: page,
+            pageSize: size,
+          },
+        }
+      );
       setRecipes(response.data.items || []);
       setTotalCount(response.data.totalCount || 0);
       setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
@@ -148,8 +147,9 @@ const RecipesTable = () => {
     }
   };
 
-  const handleEdit = (RecipesId) => {
-    setEditRecipesId(RecipesId);
+  const handleEdit = (recipesId) => {
+    console.log(`Editing Recipes with ID: ${recipesId}`);
+    setEditRecipesId(recipesId);
   };
 
   // Update Recipes API call
@@ -187,15 +187,15 @@ const RecipesTable = () => {
   };
 
   // Delete Recipes API call
-  const handleDelete = async (RecipesId) => {
-    console.error("Attempting to delete Recipes with ID:", RecipesId);
+  const handleDelete = async (recipeId) => {
+    console.log("Attempting to delete Recipe with ID:", recipeId);
 
-    if (!RecipesId) {
-      console.error("Error: RecipesId is undefined!");
+    if (!recipeId) {
+      console.error("Error: recipeId is undefined!");
       return;
     }
 
-    if (!window.confirm("Are you sure you want to delete this Recipes?")) {
+    if (!window.confirm("Are you sure you want to delete this recipe?")) {
       return;
     }
 
@@ -207,7 +207,7 @@ const RecipesTable = () => {
       }
 
       await axios.delete(
-        `${import.meta.env.VITE_API_URL}/Recipes/${RecipesId}`,
+        `${import.meta.env.VITE_API_URL}/Recipes/${recipeId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -216,12 +216,13 @@ const RecipesTable = () => {
         }
       );
 
-      // Remove the deleted item from the Recipes list
-      setRecipes(Recipes.filter((item) => item.RecipesId !== RecipesId));
+      // Update the filter to use recipeId instead of RecipesId
+      setRecipes(Recipes.filter((item) => item.recipeId !== recipeId));
+      console.log("Recipe deleted successfully");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete Recipes");
+      setError(err.response?.data?.message || "Failed to delete recipe");
       clearError();
-      console.error("Error deleting Recipes:", err);
+      console.error("Error deleting recipe:", err);
     }
   };
 
@@ -234,6 +235,26 @@ const RecipesTable = () => {
     } catch (err) {
       console.error("Error adding Recipe Recipes to list:", err);
     }
+  };
+
+  const formatTime = (minutes) => {
+    if (!minutes) return "0 min";
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    if (hours === 0) return `${remainingMinutes} min`;
+    if (remainingMinutes === 0) return `${hours} hr`;
+    return `${hours} hr ${remainingMinutes} min`;
+  };
+
+  // Add this meal color mapping function
+  const getMealColor = (meal) => {
+    const mealColors = {
+      breakfast: "bg-yellow-600 text-yellow-100",
+      lunch: "bg-green-600 text-green-100",
+      dinner: "bg-purple-600 text-purple-100",
+      snack: "bg-orange-600 text-orange-100",
+    };
+    return mealColors[meal.toLowerCase()] || "bg-blue-600 text-blue-100";
   };
 
   return (
@@ -297,25 +318,25 @@ const RecipesTable = () => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700">
+          <table className="min-w-full divide-y divide-gray-700 table-fixed">
             <thead>
               <tr>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/4">
                   Recipe Name
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
                   Meals
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
                   Nation
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Difficulty Estimation
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
+                  Difficulty
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                  Time Estimation
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
+                  Time
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
                   Actions
                 </th>
               </tr>
@@ -324,7 +345,10 @@ const RecipesTable = () => {
             <tbody className="divide-y divide-gray-700">
               {!Recipes || Recipes.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-4 text-center text-gray-400">
+                  <td
+                    colSpan="6"
+                    className="px-6 py-4 text-center text-gray-400"
+                  >
                     {loading ? "Loading..." : "No Recipes articles found"}
                   </td>
                 </tr>
@@ -333,24 +357,30 @@ const RecipesTable = () => {
                   (item) =>
                     item && // Add this check
                     (!searchTerm ||
-                      (item.recipeName && item.recipeName.toLowerCase().includes(searchTerm)) ||
-                      (item.Meals && item.Meals.toLowerCase().includes(searchTerm)))
+                      (item.recipeName &&
+                        item.recipeName.toLowerCase().includes(searchTerm)) ||
+                      (item.meals &&
+                        item.meals.toLowerCase().includes(searchTerm)))
                 ).map((item) => (
                   <motion.tr
-                    key={item.RecipesId}
+                    key={item.recipeId} // Changed from recipesId to recipeId
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <td className="px-5 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-100">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-base font-medium text-gray-100">
                         {item.recipeName && item.recipeName.length > 25
                           ? item.recipeName.substring(0, 25) + "..."
                           : item.recipeName || ""}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
+                      <span
+                        className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${getMealColor(
+                          item.meals
+                        )}`}
+                      >
                         {item.meals}
                       </span>
                     </td>
@@ -374,20 +404,20 @@ const RecipesTable = () => {
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
-                        {item.timeEstimation}
+                      <span className="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-800 text-blue-100">
+                        {formatTime(parseInt(item.timeEstimation))}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <button
                         className="text-indigo-400 hover:text-indigo-300 mr-2"
-                        onClick={() => handleEdit(item.RecipesId)}
+                        onClick={() => handleEdit(item.recipeId)} // Changed from recipesId to recipeId
                       >
                         Edit
                       </button>
                       <button
                         className="text-red-400 hover:text-red-300"
-                        onClick={() => handleDelete(item.RecipesId)}
+                        onClick={() => handleDelete(item.recipeId)} // Changed from recipesId to recipeId
                       >
                         Delete
                       </button>
@@ -432,11 +462,29 @@ const RecipesTable = () => {
       </div>
 
       {/* Edit Recipes Modal */}
-      {editRecipesId && (
+      {/* {editRecipesId && (
         <EditRecipeModal
           RecipesId={editRecipesId}
           onClose={() => setEditRecipesId(null)}
           onSave={handleSave}
+          allRecipes={Recipes}
+        />
+      )} */}
+      {editRecipesId && (
+        <EditRecipeModal
+          recipeId={editRecipesId}
+          onClose={() => setEditRecipesId(null)}
+          onSave={(updatedRecipe) => {
+            // Update the recipes list with the updated recipe
+            setRecipes(
+              Recipes.map((recipe) =>
+                recipe.recipeId === updatedRecipe.recipeId
+                  ? updatedRecipe
+                  : recipe
+              )
+            );
+            setEditRecipesId(null);
+          }}
           allRecipes={Recipes}
         />
       )}
