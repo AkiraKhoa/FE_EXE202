@@ -107,7 +107,7 @@ const NotificationsTable = () => {
     try {
       // Add console log to see the updatedNoti data
       console.log("Updated Notification Data:", updatedNoti);
-      
+
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
@@ -115,7 +115,9 @@ const NotificationsTable = () => {
       }
 
       const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/Notifications/${updatedNoti.notificationId}`,
+        `${import.meta.env.VITE_API_URL}/Notifications/${
+          updatedNoti.notificationId
+        }`,
         updatedNoti,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -275,36 +277,35 @@ const NotificationsTable = () => {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700">
+          <table className="min-w-full divide-y divide-gray-700 table-fixed">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
                   Title
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-2/6">
                   Content
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[12%]">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[18%]">
                   Created At
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[18%]">
                   Scheduled At
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[12%]">
                   Actions
                 </th>
               </tr>
             </thead>
-
             <tbody className="divide-y divide-gray-700">
               {!notifications || notifications.length === 0 ? (
                 <tr>
                   <td
-                    colSpan="7"
-                    className="px-6 py-4 text-center text-gray-400"
+                    colSpan="6"
+                    className="px-4 py-4 text-center text-gray-400"
                   >
                     {loading ? "Loading..." : "No notifications found"}
                   </td>
@@ -324,58 +325,57 @@ const NotificationsTable = () => {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <td className="px-5 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-100">
-                          {item.title.length > 18
-                            ? item.title.substring(0, 18) + "..."
+                          {item.title.length > 20
+                            ? item.title.substring(0, 20) + "..."
                             : item.title}
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4">
                         <div className="text-sm font-medium text-gray-100">
-                          {item.body.length > 35
-                            ? item.body.substring(0, 35) + "..."
+                          {item.body.length > 40
+                            ? item.body.substring(0, 40) + "..."
                             : item.body}
                         </div>
                       </td>
 
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
                             item.status === "Active"
                               ? "bg-green-800 text-green-100"
                               : item.status === "Pending"
                               ? "bg-blue-800 text-blue-100"
-                              : item.status === "Failed" 
+                              : item.status === "Failed"
                               ? "bg-red-800 text-red-100"
-                              : "bg-gray-800 text-gray-100" // fallback for any other status
+                              : "bg-gray-800 text-gray-100"
                           }`}
                         >
                           {item.status}
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span className="text-sm text-gray-300">
                           {formatDate(item.createdAt)}
                         </span>
                       </td>
 
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <span className="text-sm text-gray-300">
                           {formatDate(item.scheduledTime)}
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-300">
                         <button
                           className="text-indigo-400 hover:text-indigo-300 mr-2"
                           onClick={() => handleEdit(item.notificationId)}
                         >
                           Edit
                         </button>
-
                         <button
                           className="text-red-400 hover:text-red-300"
                           onClick={() => handleDelete(item.notificationId)}

@@ -11,7 +11,6 @@ const UsersTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  // const [editUserId, setEditUserId] = useState(null);
   const [viewUserId, setViewUserId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -123,47 +122,47 @@ const UsersTable = () => {
     setViewUserId(id);
   };
 
-  const handleSave = async (updatedUser) => {
-    try {
-      // Mock update logic
-      setUsers(
-        users.map((user) =>
-          user.Id === updatedUser.Id ? { ...user, ...updatedUser } : user
-        )
-      );
-      setEditUserId(null);
+  // const handleSave = async (updatedUser) => {
+  //   try {
+  //     // Mock update logic
+  //     setUsers(
+  //       users.map((user) =>
+  //         user.Id === updatedUser.Id ? { ...user, ...updatedUser } : user
+  //       )
+  //     );
+  //     setEditUserId(null);
 
-      // Backend API call (commented out, re-enable when backend is available)
-      /*
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No authentication token found");
-        return;
-      }
+  //     // Backend API call (commented out, re-enable when backend is available)
+  //     /*
+  //     const token = localStorage.getItem("token");
+  //     if (!token) {
+  //       setError("No authentication token found");
+  //       return;
+  //     }
 
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/users/${updatedUser.Id}`,
-        updatedUser,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+  //     const response = await axios.put(
+  //       `${import.meta.env.VITE_API_URL}/users/${updatedUser.Id}`,
+  //       updatedUser,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
 
-      setUsers(
-        users.map((user) =>
-          user.Id === updatedUser.Id ? response.data : user
-        )
-      );
-      setEditUserId(null);
-      */
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to update user");
-      console.error("Error updating user:", err);
-    }
-  };
+  //     setUsers(
+  //       users.map((user) =>
+  //         user.Id === updatedUser.Id ? response.data : user
+  //       )
+  //     );
+  //     setEditUserId(null);
+  //     */
+  //   } catch (err) {
+  //     setError(err.response?.data?.message || "Failed to update user");
+  //     console.error("Error updating user:", err);
+  //   }
+  // };
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
@@ -253,19 +252,19 @@ const UsersTable = () => {
           <table className="min-w-full divide-y divide-gray-700">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
                   Username
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
                   Email
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
                   Role
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
                   Subscription
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -298,7 +297,7 @@ const UsersTable = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        className={`px-2 inline-flex text-sm leading-5 font-semibold rounded-full ${
                           user.Role === "Admin"
                             ? "bg-purple-800 text-purple-100"
                             : user.Role === "Staff"
@@ -315,7 +314,7 @@ const UsersTable = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        className={`px-2 inline-flex text-sm leading-5 font-semibold rounded-full ${
                           user.SubscriptionStatus === "Upgrade"
                             ? "bg-green-800 text-green-100"
                             : user.SubscriptionStatus === "Free"

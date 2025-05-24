@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronRight, ChevronLeft, Star, Plus } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, Star, Plus, CheckCheckIcon, CheckCheck, BookCheck } from "lucide-react";
 import axios from "axios";
 
 const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
@@ -17,9 +17,13 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
     steps: [],
   });
 
+  const [originalData, setOriginalData] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [hoveredRating, setHoveredRating] = useState(0);
 
   // Fetch recipe data when modal opens
   useEffect(() => {
@@ -48,11 +52,14 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
           defaultUnit: ing.defaultUnit,
         }));
 
-        setRecipeData({
+        const initialData = {
           ...response.data,
           steps: response.data.steps || [],
           ingredients: cleanedIngredients,
-        });
+        };
+
+        setRecipeData(initialData);
+        setOriginalData(JSON.stringify(initialData)); // Store original data as string
         setIsLoading(false);
       } catch (err) {
         setError(
@@ -64,6 +71,14 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
 
     fetchRecipeData();
   }, [recipeId]);
+
+  // Check for changes in recipeData
+  useEffect(() => {
+    if (originalData) {
+      const currentData = JSON.stringify(recipeData);
+      setHasChanges(currentData !== originalData);
+    }
+  }, [recipeData, originalData]);
 
   // Fetch ingredients list for step 2
   useEffect(() => {
@@ -109,15 +124,17 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
         key={rating}
         type="button"
         onClick={() => handleStarClick(rating)}
-        className="focus:outline-none"
+        onMouseEnter={() => setHoveredRating(rating)}
+        onMouseLeave={() => setHoveredRating(0)}
+        className="focus:outline-none transform transition-transform hover:scale-110"
       >
         <Star
           size={24}
           className={`${
-            rating <= recipeData.difficultyEstimation
+            rating <= (hoveredRating || recipeData.difficultyEstimation)
               ? "text-yellow-400 fill-yellow-400"
               : "text-gray-600"
-          } cursor-pointer transition-colors`}
+          } cursor-pointer transition-all duration-200`}
         />
       </button>
     ));
@@ -439,23 +456,18 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
 
                 <div>
                   <label className="block text-gray-300 mb-1">
-                    Time Estimation *
+                    Time Estimation (in minutes) *
                   </label>
-                  <select
+                  <input
+                    type="number"
                     name="timeEstimation"
                     value={recipeData.timeEstimation}
                     onChange={handleChange}
-                    className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500"
+                    min="1"
+                    placeholder="Enter preparation time"
+                    className="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     required
-                  >
-                    <option value="">Select preparation time</option>
-                    <option value={15}>15 minutes</option>
-                    <option value={30}>30 minutes</option>
-                    <option value={45}>45 minutes</option>
-                    <option value={60}>1 hour</option>
-                    <option value={90}>1.5 hours</option>
-                    <option value={120}>2+ hours</option>
-                  </select>
+                  />
                 </div>
 
                 <div>
@@ -605,7 +617,9 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
                   {recipeData.steps.map((step, index) => (
                     <div key={index} className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <div className="text-gray-300">Step {step.stepNumber}</div>
+                        <div className="text-gray-300">
+                          Step {step.stepNumber}
+                        </div>
                         <button
                           onClick={() => handleDeleteStep(index)}
                           className="p-2 text-gray-400 hover:text-red-500 transition-colors"
@@ -643,11 +657,25 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
                     Back
                   </button>
                   <button
-                    onClick={handleNext}
-                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-colors"
+                    onClick={hasChanges ? handleNext : undefined}
+                    className={`flex-1 px-4 py-2 ${
+                      hasChanges
+                        ? "bg-green-600 hover:bg-green-700"
+                        : "bg-gray-600 cursor-not-allowed"
+                    } text-white rounded-lg flex items-center justify-center gap-2 transition-colors`}
+                    disabled={!hasChanges}
                   >
-                    Update Recipe
-                    <ChevronRight size={20} />
+                    {hasChanges ? (
+                      <>
+                        Update Recipe
+                        <BookCheck size={20} />
+                      </>
+                    ) : (
+                      <>
+                        Nothing to Update
+                        <X size={20} />
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

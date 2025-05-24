@@ -1,7 +1,7 @@
 import { BarChart2, Bell, BookOpen, Users, LogOut, Menu, Contact } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 const SIDEBAR_ITEMS = {
   Admin: [
@@ -19,6 +19,7 @@ const SIDEBAR_ITEMS = {
 const Sidebar = ({ role, setUser }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const menuItems = SIDEBAR_ITEMS[role] || [];
 
   const handleLogout = () => {
@@ -35,22 +36,57 @@ const Sidebar = ({ role, setUser }) => {
       }`}
       animate={{ width: isSidebarOpen ? 256 : 80 }}
     >
-      <div className="h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-4 flex flex-col border-r border-gray-700">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
+      <div className="h-full bg-gray-800 bg-opacity-50 backdrop-blur-md p-3 flex flex-col border-r border-gray-700">
+        
+        {/* Toggle Button */}
+        <button
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="p-2 rounded-full hover:bg-gray-700 transition-colors max-w-fit"
+          className="pt-4 pb-3 pl-3 pr-3 hover:bg-gray-700 rounded-lg transition-colors self-start mb-2"
         >
-          <Menu size={24} />
-        </motion.button>
-        <nav className="mt-8 flex-grow">
-          {menuItems.map((item) => (
-            <Link key={item.href} to={item.href}>
+          <Menu size={25} className="text-gray-400" />
+        </button>
+
+        <nav className="mt-8 flex-grow relative">
+          {/* Active Background Indicator */}
+          {menuItems.map((item, index) => (
+            location.pathname === item.href && (
               <motion.div
-                className="flex items-center p-4 text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors mb-2"
+                key="active-bg"
+                layoutId="active-bg"
+                className="absolute inset-x-0 h-12 rounded-lg bg-gray-700/50"
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 400, 
+                  damping: 30 
+                }}
+                initial={false}
+                style={{ 
+                  top: `${index * (48 + 8)}px`,  // 48px height + 8px margin
+                }}
+              />
+            )
+          ))}
+
+          {menuItems.map((item, index) => (
+            <Link 
+              key={item.href} 
+              to={item.href}
+              className={`relative z-10 block mb-2 ${
+                location.pathname === item.href ? 'text-white' : 'text-gray-400'
+              }`}
+            >
+              <motion.div
+                className="flex items-center h-12 px-4 text-sm font-medium rounded-lg transition-colors"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <item.icon size={24} style={{ color: item.color, minWidth: "20px" }} />
+                <item.icon 
+                  size={24} 
+                  style={{ 
+                    color: location.pathname === item.href ? '#fff' : item.color,
+                    minWidth: "20px" 
+                  }} 
+                />
                 <AnimatePresence>
                   {isSidebarOpen && (
                     <motion.span
@@ -58,7 +94,7 @@ const Sidebar = ({ role, setUser }) => {
                       initial={{ opacity: 0, width: 0 }}
                       animate={{ opacity: 1, width: "auto" }}
                       exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.2, delay: 0.3 }}
+                      transition={{ duration: 0.2 }}
                     >
                       {item.name}
                     </motion.span>
@@ -68,10 +104,10 @@ const Sidebar = ({ role, setUser }) => {
             </Link>
           ))}
 
-          {/* 🔴 Logout Button */}
+          {/* Logout Button */}
           <motion.div
             onClick={handleLogout}
-            className="flex items-center p-4 text-sm font-medium rounded-lg hover:bg-red-600 transition-colors cursor-pointer mt-auto"
+            className="relative z-10 flex items-center h-12 px-4 mt-auto text-sm font-medium rounded-lg hover:bg-red-600/20 transition-colors cursor-pointer"
           >
             <LogOut size={24} style={{ color: "#F87171", minWidth: "20px" }} />
             <AnimatePresence>

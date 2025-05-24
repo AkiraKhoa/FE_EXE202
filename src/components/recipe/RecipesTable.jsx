@@ -68,6 +68,11 @@ const RecipesTable = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [editRecipesId, setEditRecipesId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState({
+    isOpen: false,
+    recipeId: null,
+    recipeName: "",
+  });
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(9);
@@ -187,18 +192,21 @@ const RecipesTable = () => {
   };
 
   // Delete Recipes API call
+  // Replace the existing handleDelete function
   const handleDelete = async (recipeId) => {
-    console.log("Attempting to delete Recipe with ID:", recipeId);
+    const recipe = Recipes.find((r) => r.recipeId === recipeId);
+    if (!recipe) return;
 
-    if (!recipeId) {
-      console.error("Error: recipeId is undefined!");
-      return;
-    }
+    setDeleteConfirmation({
+      isOpen: true,
+      recipeId: recipeId,
+      recipeName: recipe.recipeName,
+    });
+  };
 
-    if (!window.confirm("Are you sure you want to delete this recipe?")) {
-      return;
-    }
-
+  // Add this new function to handle the actual deletion
+  const confirmDelete = async () => {
+    const recipeId = deleteConfirmation.recipeId;
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -216,8 +224,8 @@ const RecipesTable = () => {
         }
       );
 
-      // Update the filter to use recipeId instead of RecipesId
       setRecipes(Recipes.filter((item) => item.recipeId !== recipeId));
+      setDeleteConfirmation({ isOpen: false, recipeId: null, recipeName: "" });
       console.log("Recipe deleted successfully");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete recipe");
@@ -385,13 +393,13 @@ const RecipesTable = () => {
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex items-center gap-2 text-xs leading-5 font-semibold rounded-full bg-gray-800 text-gray-100">
+                      <span className="px-2 inline-flex items-center gap-2 text-sm leading-5 font-semibold rounded-full bg-gray-800 text-gray-100">
                         <ReactCountryFlag
                           countryCode={getCountryCode(item.nation)}
                           svg
                           style={{
-                            width: "1.2em",
-                            height: "1.2em",
+                            width: "1.5em",
+                            height: "1.5em",
                           }}
                           title={item.nation}
                         />
@@ -411,13 +419,13 @@ const RecipesTable = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       <button
                         className="text-indigo-400 hover:text-indigo-300 mr-2"
-                        onClick={() => handleEdit(item.recipeId)} // Changed from recipesId to recipeId
+                        onClick={() => handleEdit(item.recipeId)} 
                       >
                         Edit
                       </button>
                       <button
                         className="text-red-400 hover:text-red-300"
-                        onClick={() => handleDelete(item.recipeId)} // Changed from recipesId to recipeId
+                        onClick={() => handleDelete(item.recipeId)} 
                       >
                         Delete
                       </button>
@@ -495,6 +503,63 @@ const RecipesTable = () => {
           onClose={() => setShowCreateModal(false)}
           onSave={handleCreate}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm"/>
+          <motion.div
+            className="bg-gray-800 rounded-xl p-6 w-[400px] border border-gray-700 shadow-2xl relative z-50"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+          >
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg
+                  className="h-6 w-6 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-100 mb-2">
+                Delete Recipe
+              </h3>
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete{" "}
+                <span className="font-semibold">
+                  {deleteConfirmation.recipeName}
+                </span>
+                ? This action cannot be undone.
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() =>
+                    setDeleteConfirmation({ isOpen: false, recipeId: null, recipeName: "" })
+                  }
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                >
+                  Yes, delete recipe
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       )}
     </motion.div>
   );
