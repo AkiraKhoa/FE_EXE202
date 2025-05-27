@@ -168,9 +168,6 @@ const UsersTable = () => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     try {
-      // Mock delete logic
-      // setUsers(users.filter((user) => user.Id !== id));
-
       // Backend API call (commented out, re-enable when backend is available)
       // /*
       const token = localStorage.getItem("token");

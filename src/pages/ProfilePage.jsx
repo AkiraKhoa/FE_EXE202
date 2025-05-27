@@ -12,7 +12,7 @@ const ProfilePage = () => {
     username: "",
     email: "",
     phone: "",
-    profileImage: null
+    profileImage: null,
   });
   const [editMode, setEditMode] = useState(false);
   const [editedData, setEditedData] = useState({});
@@ -35,7 +35,7 @@ const ProfilePage = () => {
       setLoading(true);
       const token = localStorage.getItem("token");
       const upId = localStorage.getItem("upId"); // Changed from userId to upId
-      
+
       if (!token || !upId) {
         setError("No authentication token or user ID found");
         return;
@@ -47,14 +47,14 @@ const ProfilePage = () => {
 
       const response = await axios.get(
         `${import.meta.env.VITE_API}/UserProfile/userProfileMin/${upId}`, // Updated URL to use upId
-        { 
-          headers: { 
+        {
+          headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          } 
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       // Log the response data for debugging
       console.log("API Response:", response.data);
 
@@ -63,9 +63,9 @@ const ProfilePage = () => {
           fullName: response.data.fullName || "",
           username: response.data.username || "",
           email: response.data.email || "",
-          phone: response.data.phoneNumber || "", // Changed to match API response
-          profileImage: response.data.profileImage || null,
-          role: response.data.role || ""
+          phone: response.data.phoneNumber || "",
+          profileImage: response.data.userPicture || null,
+          role: response.data.role || "",
         });
         setError(null);
       } else {
@@ -81,24 +81,91 @@ const ProfilePage = () => {
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      // Add your image upload logic here
+
+    if (!file) {
+      toast.error("No file selected.");
+      return;
+    }
+
+    // Validate file type and size
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPEG, PNG, or GIF files are allowed.");
+      return;
+    }
+    if (file.size > maxSize) {
+      toast.error("File size exceeds 5MB limit.");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const upId = localStorage.getItem("upId");
+      if (!token || !upId) {
+        toast.error("Authentication required. Please log in.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("upId", upId);
+
+      const loadingToastId = toast.loading("Uploading image...");
+      const response = await axios.post(
+        `${import.meta.env.VITE_API}/UserProfile/uploadProfileImage`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.dismiss(loadingToastId);
+      if (response.data?.secureUrl) {
+        setUserData((prev) => ({
+          ...prev,
+          profileImage: response.data.secureUrl,
+        }));
+        toast.success("Profile image uploaded successfully!");
+        fetchUserProfile(); // Refresh user data after upload
+      } else {
+        toast.error("Image upload failed: No URL returned.");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error(error.response?.data?.message || "Failed to upload image.");
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setEditedData(prev => ({
+    setEditedData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
+
+// const handleInputChange = (e) => {
+//   const { name, value } = e.target;
+//   if (name === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+//     toast.error("Invalid email format.");
+//     return;
+//   }
+//   if (name === "phone" && value && !/^\+?\d{10,15}$/.test(value)) {
+//     toast.error("Invalid phone number format.");
+//     return;
+//   }
+//   setEditedData((prev) => ({ ...prev, [name]: value }));
+// };
 
   const handleSubmit = async () => {
     try {
       const token = localStorage.getItem("token");
       const upId = localStorage.getItem("upId");
-      
+
       // Format the data to match API expectations
       const formattedData = {
         upId: parseInt(upId),
@@ -106,7 +173,7 @@ const ProfilePage = () => {
         username: userData.username,
         email: editedData.email,
         phoneNumber: editedData.phone,
-        role: userData.role
+        role: userData.role,
       };
 
       // Show loading toast
@@ -115,20 +182,20 @@ const ProfilePage = () => {
       await axios.put(
         `${import.meta.env.VITE_API}/UserProfile/userProfile/${upId}`,
         formattedData,
-        { 
-          headers: { 
+        {
+          headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          } 
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       // Update local state with the new data
       setUserData({
         ...userData,
         fullName: editedData.fullName,
         email: editedData.email,
-        phone: editedData.phone
+        phone: editedData.phone,
       });
 
       // Dismiss loading toast and show success
@@ -136,21 +203,21 @@ const ProfilePage = () => {
       toast.success("Profile updated successfully!", {
         duration: 3000,
         style: {
-          background: '#1f2937',
-          color: '#fff',
+          background: "#1f2937",
+          color: "#fff",
         },
       });
 
       setEditMode(false);
     } catch (err) {
       console.error("Update error:", err.response?.data || err.message);
-      
+
       // Show error toast
       toast.error(err.response?.data?.message || "Failed to update profile", {
         duration: 3000,
         style: {
-          background: '#1f2937',
-          color: '#fff',
+          background: "#1f2937",
+          color: "#fff",
         },
       });
     }
@@ -160,11 +227,11 @@ const ProfilePage = () => {
     setEditMode(false);
     setEditedData({});
     toast("Changes discarded", {
-      icon: '🔄',
+      icon: "🔄",
       duration: 2000,
       style: {
-        background: '#1f2937',
-        color: '#fff',
+        background: "#1f2937",
+        color: "#fff",
       },
     });
   };
@@ -192,10 +259,11 @@ const ProfilePage = () => {
             <div className="relative">
               <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 mb-4">
                 {userData.profileImage ? (
-                  <img 
-                    src={userData.profileImage} 
-                    alt="Profile" 
+                  <img
+                    src={`${userData.profileImage}?w=128&h=128&c=fill&g=center&q=80`}
+                    alt="Profile"
                     className="w-full h-full object-cover"
+                    onError={(e) => (e.target.src = "/fallback-profile.png")}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
@@ -217,14 +285,18 @@ const ProfilePage = () => {
                 </label>
               </div>
             </div>
-            <h1 className="text-2xl font-semibold text-white mb-1">{userData.fullName}</h1>
+            <h1 className="text-2xl font-semibold text-white mb-1">
+              {userData.fullName}
+            </h1>
             <p className="text-gray-400">@{userData.username}</p>
           </div>
 
           {/* Personal Information */}
           <div className="space-y-6">
             <div className="bg-gray-700/50 rounded-lg p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">Personal Information</h2>
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Personal Information
+              </h2>
               <div className="space-y-4">
                 <div className="flex items-center text-gray-300">
                   <User size={20} className="text-gray-400 mr-3" />
@@ -311,7 +383,7 @@ const ProfilePage = () => {
             </div>
           </div>
         </motion.div>
-        <ChangePasswordModal 
+        <ChangePasswordModal
           isOpen={isPasswordModalOpen}
           onClose={() => setIsPasswordModalOpen(false)}
         />
