@@ -1,0 +1,71 @@
+/* Đảm bảo html và body có chiều cao đầy đủ */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+/* Container chính của dashboard */
+.flex-1.overflow-auto {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  z-index: 5; /* Giảm z-index để không che sidebar (z-10) */
+}
+
+/* Đảm bảo nội dung trong main không bị cắt */
+main {
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Grid chứa các biểu đồ */
+.grid.grid-cols-1.lg\:grid-cols-2.gap-8 {
+  width: 100%;
+  box-sizing: border-box;
+}
+/* Theme styles */
+.dark {
+    background: linear-gradient(135deg, #1F2937, #111827);
+    color: #E5E7EB;
+  }
+  
+  .light {
+    background: linear-gradient(135deg, #F3F4F6, #E5E7EB);
+    color: #1F2937;
+  }
+  
+  .dark .bg-gray-800 {
+    background: rgba(31, 41, 55, 0.5);
+    backdrop-filter: blur(10px);
+  }
+  
+  .light .bg-gray-800 {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(10px);
+  }
+  
+  /* Tab styles */
+  .react-tabs__tab-list {
+    border-bottom: 1px solid #4B5563;
+  }
+  
+  .react-tabs__tab {
+    padding: 8px 16px;
+    color: #E5E7EB;
+    cursor: pointer;
+  }
+  
+  .dark .react-tabs__tab--selected {
+    background: #374151;
+    border-bottom: 2px solid #3B82F6;
+  }
+  
+  .light .react-tabs__tab--selected {
+    background: #D1D5DB;
+    border-bottom: 2px solid #3B82F6;
+    color: #1F2937;
+  }

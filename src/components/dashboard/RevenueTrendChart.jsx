@@ -1,23 +1,12 @@
 import { motion } from "framer-motion";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceLine,
-} from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useUserStats } from "../context/UserStatsContext";
 
-const PeakAccessTimeChart = () => {
+const RevenueTrendChart = () => {
   const { stats, loading, error } = useUserStats();
 
   if (loading) return <div className="text-gray-100">Loading...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
-
-  const averageAccess = stats.peakAccessTimes.reduce((sum, item) => sum + item.accessCount, 0) / stats.peakAccessTimes.length;
 
   return (
     <motion.div
@@ -26,18 +15,12 @@ const PeakAccessTimeChart = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
     >
-      <h2 className="text-lg font-medium mb-4 text-gray-100">Peak Access Times</h2>
+      <h2 className="text-lg font-medium mb-4 text-gray-100">Revenue Trends</h2>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={stats.peakAccessTimes}>
-            <defs>
-              <linearGradient id="gradientBar" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#3B82F6" />
-                <stop offset="95%" stopColor="#1D4ED8" />
-              </linearGradient>
-            </defs>
+          <LineChart data={stats.revenueTrends}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-            <XAxis dataKey="hour" stroke="#9CA3AF" />
+            <XAxis dataKey="day" stroke="#9CA3AF" />
             <YAxis stroke="#9CA3AF" />
             <Tooltip
               contentStyle={{
@@ -46,13 +29,12 @@ const PeakAccessTimeChart = () => {
               }}
               itemStyle={{ color: "#E5E7EB" }}
             />
-            <ReferenceLine y={averageAccess} stroke="#EF4444" label="Avg" strokeDasharray="3 3" />
-            <Bar dataKey="accessCount" fill="url(#gradientBar)" />
-          </BarChart>
+            <Line type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} />
+          </LineChart>
         </ResponsiveContainer>
       </div>
     </motion.div>
   );
 };
 
-export default PeakAccessTimeChart;
+export default RevenueTrendChart;
