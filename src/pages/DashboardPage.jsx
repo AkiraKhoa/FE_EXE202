@@ -6,7 +6,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, useSortable, arrayMove } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Particles } from "@tsparticles/react";
-import { initParticlesEngine } from "@tsparticles/react"; // Only need initParticlesEngine
+import { initParticlesEngine } from "@tsparticles/react";
 import { faker } from "@faker-js/faker";
 import Header from "../components/common/Header";
 import UsersStat from "../components/common/UsersStat";
@@ -15,13 +15,15 @@ import PeakAccessTimeChart from "../components/dashboard/PeakAccessTimeChart";
 import RevenueTrendChart from "../components/dashboard/RevenueTrendChart";
 import UserDemographicsChart from "../components/dashboard/UserDemographicsChart";
 import EngagementScatter from "../components/dashboard/EngagementScatter";
+import HeatmapChart from "../components/dashboard/HeatmapChart";
+import AIDrivenInsights from "../components/dashboard/AIDrivenInsights";
+import SustainabilityMetrics from "../components/dashboard/SustainabilityMetrics";
 import { UserStatsProvider } from "../components/context/UserStatsContext";
 import './styles.css';
 
 // Particle effect initialization
 const particlesInit = async (engine) => {
   await initParticlesEngine(engine);
-  // No need for loadFull; @tsparticles/all already includes all features
 };
 
 // Component SortableChart cho drag-and-drop
@@ -49,6 +51,9 @@ const DashboardPage = () => {
     "revenue",
     "demographics",
     "engagement",
+    "heatmap",
+    "aiInsights",
+    "sustainability",
   ]);
 
   // Generate mock data
@@ -76,36 +81,37 @@ const DashboardPage = () => {
       hour: faker.date.recent().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       clicks: faker.number.int({ min: 50, max: 300 }),
     })),
+    heatmapData: Array.from({ length: 7 }, () => ({
+      day: faker.date.weekday(),
+      value: faker.number.int({ min: 0, max: 100 }),
+    })),
+    aiInsights: [
+      {
+        prediction: faker.number.int({ min: 70, max: 95 }),
+        message: "Dự đoán: Đạt mục tiêu giảm cân với chế độ dinh dưỡng tối ưu",
+        confidence: faker.number.float({ min: 0.85, max: 0.99, precision: 0.01 }),
+        timeframe: `${faker.number.int({ min: 1, max: 6 })} tháng`,
+        recommendation: "Tăng cường bổ sung protein từ thực phẩm tự nhiên như ức gà và đậu hũ.",
+      },
+      {
+        prediction: faker.number.int({ min: 60, max: 90 }),
+        message: "Dự báo: Cải thiện sức khỏe tim mạch thông qua chế độ ăn uống khoa học",
+        confidence: faker.number.float({ min: 0.80, max: 0.98, precision: 0.01 }),
+        timeframe: `${faker.number.int({ min: 2, max: 8 })} tháng`,
+        recommendation: "Giảm lượng muối và tăng cường rau xanh như cải bó xôi vào bữa ăn hàng ngày.",
+      },
+      {
+        prediction: faker.number.int({ min: 65, max: 92 }),
+        message: "Tiên lượng: Tăng cơ hiệu quả với kế hoạch dinh dưỡng giàu năng lượng",
+        confidence: faker.number.float({ min: 0.82, max: 0.97, precision: 0.01 }),
+        timeframe: `${faker.number.int({ min: 3, max: 6 })} tháng`,
+        recommendation: "Kết hợp yến mạch và các loại hạt như hạnh nhân vào bữa sáng.",
+      },
+    ],
+    sustainability: {
+      carbonFootprint: faker.number.float({ min: 0.5, max: 2.0, precision: 0.1 }),
+    },
   });
-
-  // Backend API call (commented out, re-enable when backend is available)
-  /*
-  const fetchData = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("No authentication token found");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await axios.get(`${import.meta.env.VITE_API_URL}/user-stats`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      
-      setStats(response.data);
-      setLoading(false);
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || "Failed to fetch user stats");
-      setLoading(false);
-      console.error("Error fetching data:", err);
-    }
-  };
-
-  fetchData();
-  */
 
   useEffect(() => {
     // Initial mock data
@@ -143,6 +149,9 @@ const DashboardPage = () => {
     revenue: <RevenueTrendChart />,
     demographics: <UserDemographicsChart />,
     engagement: <EngagementScatter />,
+    heatmap: <HeatmapChart />,
+    aiInsights: <AIDrivenInsights />,
+    sustainability: <SustainabilityMetrics />,
   };
 
   return (
@@ -215,6 +224,9 @@ const DashboardPage = () => {
                 <RevenueTrendChart />
                 <UserDemographicsChart />
                 <EngagementScatter />
+                <HeatmapChart />
+                <AIDrivenInsights />
+                <SustainabilityMetrics />
               </div>
             </TabPanel>
 

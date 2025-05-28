@@ -1,12 +1,19 @@
 import { motion } from "framer-motion";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
 import { useUserStats } from "../context/UserStatsContext";
 
-const RevenueTrendChart = () => {
+const HeatmapChart = () => {
   const { stats, loading, error } = useUserStats();
 
   if (loading) return <div className="text-gray-100">Loading...</div>;
   if (error) return <div className="text-red-500">Error: {error}</div>;
+
+  const getColor = (value) => {
+    if (value > 80) return "#EF4444";
+    if (value > 50) return "#F59E0B";
+    if (value > 20) return "#10B981";
+    return "#3B82F6";
+  };
 
   return (
     <motion.div
@@ -16,11 +23,10 @@ const RevenueTrendChart = () => {
       whileHover={{ scale: 1.02 }}
       transition={{ delay: 0.3 }}
     >
-      <h2 className="text-lg font-medium mb-4 text-gray-100">Revenue Trends</h2>
+      <h2 className="text-lg font-medium mb-4 text-gray-100">User Activity Heatmap</h2>
       <div className="h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={stats.revenueTrends}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+          <BarChart data={stats.heatmapData}>
             <XAxis dataKey="day" stroke="#9CA3AF" />
             <YAxis stroke="#9CA3AF" />
             <Tooltip
@@ -30,12 +36,16 @@ const RevenueTrendChart = () => {
               }}
               itemStyle={{ color: "#E5E7EB" }}
             />
-            <Line type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} />
-          </LineChart>
+            <Bar dataKey="value">
+              {stats.heatmapData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={getColor(entry.value)} />
+              ))}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </motion.div>
   );
 };
 
-export default RevenueTrendChart;
+export default HeatmapChart;
