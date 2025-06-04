@@ -128,7 +128,7 @@ const RecipesTable = () => {
 
       // /* Uncomment when API is ready
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/Recipes`,
+        `${import.meta.env.VITE_API}/Recipes`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
