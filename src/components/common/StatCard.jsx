@@ -11,7 +11,7 @@ const StatCard = ({ name, icon: Icon, value, color }) => {
       <Icon className="w-8 h-8" style={{ color }} />
       <div>
         <h3 className="text-sm font-medium text-gray-400">{name}</h3>
-        <p className="text-lg font-semibold text-gray-100">{value}</p>
+        <div className="text-lg font-semibold text-gray-100">{value}</div> {/* Thay <p> bằng <div> */}
       </div>
     </motion.div>
   );
