@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Heart, AlertTriangle } from "lucide-react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const ViewUserProfile = ({ id, onClose, allUsers }) => {
   const [userData, setUserData] = useState({
@@ -14,9 +15,9 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
     healthConditions: [],
     role: "",
     userId: "",
-    profileImage: null // Add this line
+    profileImage: null, // Add this line
   });
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -29,14 +30,14 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
       const token = localStorage.getItem("token");
       const response = await axios.get(
         `${import.meta.env.VITE_API}/UserProfile/userProfile/${id}`,
-        { 
-          headers: { 
+        {
+          headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          } 
+            "Content-Type": "application/json",
+          },
         }
       );
-      
+
       setUserData({
         fullName: response.data.fullName || "",
         username: response.data.username || "",
@@ -47,7 +48,7 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
         healthConditions: response.data.healthConditions || [],
         role: response.data.role || "",
         userId: response.data.userId || "",
-        profileImage: response.data.profileImage || null
+        profileImage: response.data.userPicture || null,
       });
       setError(null);
     } catch (err) {
@@ -99,6 +100,16 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
     );
   }
 
+  const handleImageError = async (e) => {
+    e.target.src = "/default-avatar.png";
+    console.log(
+      "Image failed to load, refreshing user data:",
+      userData.profileImage
+    );
+    await fetchUserById();
+    toast.error("Profile image is unavailable and has been reset.");
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -124,38 +135,43 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
           {/* Profile Header */}
           <div className="flex flex-col items-center mb-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-700 mb-3 flex items-center justify-center">
+              <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-700 mb-3 flex items-center justify-center">
                 {userData.profileImage ? (
-                  <img 
-                    src={userData.profileImage} 
-                    alt={userData.fullName || "Profile"} 
+                  <img
+                    src={`${userData.profileImage}?w=128&h=128&c=fill&q=80`}
+                    alt={userData.fullName || "Profile"}
                     className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src = '/default-avatar.png'; // You can add a default avatar image
-                      console.log('Error loading profile image');
-                    }}
+                    onError={handleImageError}
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gray-700">
                     <span className="text-2xl text-gray-400">
-                      {userData.fullName ? userData.fullName.charAt(0).toUpperCase() : 'U'}
+                      {userData.fullName
+                        ? userData.fullName.charAt(0).toUpperCase()
+                        : "U"}
                     </span>
                   </div>
                 )}
               </div>
             </div>
-            <h2 className="text-xl font-semibold text-white">{userData.fullName || "User Profile"}</h2>
+            <h2 className="text-xl font-semibold text-white">
+              {userData.fullName || "User Profile"}
+            </h2>
             <p className="text-gray-400">@{userData.username || "username"}</p>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center">
-              <div className="text-xl font-semibold">{userData.allergies?.length || 0}</div>
+              <div className="text-xl font-semibold">
+                {userData.allergies?.length || 0}
+              </div>
               <div className="text-sm text-gray-400">Allergies</div>
             </div>
             <div className="text-center">
-              <div className="text-xl font-semibold">{userData.healthConditions?.length || 0}</div>
+              <div className="text-xl font-semibold">
+                {userData.healthConditions?.length || 0}
+              </div>
               <div className="text-sm text-gray-400">Conditions</div>
             </div>
             <div className="text-center">
@@ -188,9 +204,14 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
             </div>
             <div className="space-y-2">
               {userData.healthConditions?.map((condition, index) => (
-                <div key={index} className="flex items-center justify-between text-gray-300">
+                <div
+                  key={index}
+                  className="flex items-center justify-between text-gray-300"
+                >
                   <span>{condition.name}</span>
-                  <span className="text-sm text-gray-400">{condition.severity}</span>
+                  <span className="text-sm text-gray-400">
+                    {condition.severity}
+                  </span>
                 </div>
               ))}
             </div>
@@ -205,11 +226,15 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
             <div className="bg-gray-700 rounded-lg p-4 space-y-2">
               <div className="flex justify-between">
                 <span className="text-gray-400">Gender</span>
-                <span className="text-gray-300">{userData.gender || 'Not specified'}</span>
+                <span className="text-gray-300">
+                  {userData.gender || "Not specified"}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Age</span>
-                <span className="text-gray-300">{userData.age || 'Not specified'}</span>
+                <span className="text-gray-300">
+                  {userData.age || "Not specified"}
+                </span>
               </div>
             </div>
           </div>
