@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import axios from "axios"; // Commented out for mock data, re-enable when backend is available
-import { jwtDecode } from "jwt-decode"; // Commented out for mock data, re-enable when backend is available
+import axios from "axios";
+import { jwtDecode } from "jwt-decode";
+import toast from "react-hot-toast";
 
 const LoginForm = ({ setUser }) => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -18,44 +19,38 @@ const LoginForm = ({ setUser }) => {
     setError("");
 
     try {
-      console.log("Attempting login with API:", `${import.meta.env.VITE_API}/Auth/login`);
-      
       const response = await axios.post(
         `${import.meta.env.VITE_API}/Auth/login`,
         formData,
         {
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      console.log("Login response:", response.data);
-
       if (response.data && response.data.token) {
         const token = response.data.token;
-        const upId = response.data.upId; // Make sure this matches your API response
+        const upId = response.data.upId;
 
-        // Store token and upId
+        // Lưu token và upId, không lưu role
         localStorage.setItem("token", token);
         localStorage.setItem("upId", upId.toString());
 
-        // Decode token
+        // Giải mã token
         const decoded = jwtDecode(token);
-        console.log("Decoded token:", decoded);
-
         const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
-        
+
         if (!role) {
-          throw new Error("Invalid token: missing role claim");
+          throw new Error("Token không hợp lệ: thiếu thông tin vai trò");
         }
 
-        // Only set user and navigate if role is authorized
+        // Chỉ set user và navigate nếu role được phép
         if (role === "Admin" || role === "Staff") {
-          localStorage.setItem("role", role);
           setUser({ email: formData.email, role, upId });
+          toast.success("Đăng nhập thành công!");
 
-          // Navigate based on role
+          // Navigate dựa trên role
           if (role === "Admin") {
             navigate("/", { replace: true });
           } else if (role === "Staff") {
@@ -63,23 +58,24 @@ const LoginForm = ({ setUser }) => {
           }
         } else {
           clearLocalStorage();
-          setError("Your account is unauthorized.");
+          setError("Tài khoản của bạn không được phép truy cập.");
         }
-      } else {
-        setError("Invalid credentials");
+      } else {1
+        setError("Thông tin đăng nhập không hợp lệ");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      
       if (error.response) {
-        // Get the error message from the API response
-        const errorMessage = error.response.data.error || error.response.data.message || "Invalid email or password";
+        const errorMessage = error.response.data.error || error.response.data.message || "Email hoặc mật khẩu không đúng";
         setError(errorMessage);
+        toast.error(errorMessage);
       } else if (error.request) {
-        setError("No response from server. Please check your connection.");
+        setError("Không nhận được phản hồi từ server. Vui lòng kiểm tra kết nối.");
+        toast.error("Không nhận được phản hồi từ server.");
       } else {
-        setError("An error occurred. Please try again.");
+        setError("Đã xảy ra lỗi. Vui lòng thử lại.");
+        toast.error(error.message);
       }
+      clearLocalStorage();
     }
   };
 
@@ -121,7 +117,7 @@ const LoginForm = ({ setUser }) => {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-2xl font-semibold text-gray-100 text-center mb-6">
-            Login
+            Đăng nhập
           </h2>
 
           <form onSubmit={handleSubmit}>
@@ -138,7 +134,7 @@ const LoginForm = ({ setUser }) => {
             </div>
 
             <div className="mb-6">
-              <label className="block text-gray-300 mb-1">Password</label>
+              <label className="block text-gray-300 mb-1">Mật khẩu</label>
               <input
                 type="password"
                 name="password"
@@ -158,7 +154,7 @@ const LoginForm = ({ setUser }) => {
               whileTap={{ scale: 0.95 }}
               className="w-full bg-blue-600 hover:bg-blue-500 p-3 rounded-lg text-white font-semibold transition-all duration-200"
             >
-              Login
+              Đăng nhập
             </motion.button>
 
             <motion.button
@@ -168,7 +164,7 @@ const LoginForm = ({ setUser }) => {
               type="button"
               onClick={handleForgotPassword}
             >
-              Forgot Password?
+              Quên mật khẩu?
             </motion.button>
           </form>
         </motion.div>

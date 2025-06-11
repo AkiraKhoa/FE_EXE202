@@ -1,5 +1,6 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 import DashboardPage from "./pages/DashboardPage";
 import UsersPage from "./pages/UsersPage";
 import RecipesPage from "./pages/RecipesPage";
@@ -9,7 +10,7 @@ import Sidebar from "./components/common/Sidebar";
 import LoginPage from "./pages/LoginPage";
 import ForgotPasswordForm from "./components/auth/ForgotPasswordForm";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -17,9 +18,25 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const upId = localStorage.getItem("upId");
 
-    setUser(token && role ? { role } : null);
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
+        if (role && upId) {
+          setUser({ role, upId });
+        } else {
+          setUser(null);
+          localStorage.removeItem("token");
+          localStorage.removeItem("upId");
+        }
+      } catch (error) {
+        setUser(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("upId");
+      }
+    }
     setLoading(false);
   }, []);
 
@@ -41,7 +58,7 @@ function App() {
               <>
                 <Route path="/login" element={<LoginPage setUser={setUser} />} />
                 <Route path="*" element={<Navigate to="/login" />} />
-                <Route path="/forgot-password" element={<ForgotPasswordForm />} />             
+                <Route path="/forgot-password" element={<ForgotPasswordForm />} />
               </>
             ) : (
               <>
@@ -53,7 +70,7 @@ function App() {
                 {/* Protect Dashboard: Only Admin can access */}
                 <Route element={<ProtectedRoute user={user} allowedRoles={["Admin"]} />}>
                   <Route path="/" element={<DashboardPage />} />
-                  <Route path="/users" element={<UsersPage />} />            
+                  <Route path="/users" element={<UsersPage />} />
                 </Route>
 
                 {/* Protect Staff pages: Only Staff can access */}
@@ -75,22 +92,22 @@ function App() {
         toastOptions={{
           duration: 3000,
           style: {
-            background: '#1f2937',
-            color: '#fff',
-            padding: '16px',
+            background: "#1f2937",
+            color: "#fff",
+            padding: "16px",
           },
           success: {
             duration: 3000,
             iconTheme: {
-              primary: '#10B981',
-              secondary: '#fff',
+              primary: "#10B981",
+              secondary: "#fff",
             },
           },
           error: {
             duration: 3000,
             iconTheme: {
-              primary: '#EF4444',
-              secondary: '#fff',
+              primary: "#EF4444",
+              secondary: "#fff",
             },
           },
         }}
