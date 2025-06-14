@@ -32,7 +32,6 @@ const ForgotPasswordForm = ({ setUser }) => {
       setCodeSent(true);
     } catch (error) {
       console.error(error);
-      // Handle ASP.NET Core Identity error format
       if (error.response?.data?.errors) {
         const errorMessages = Object.values(error.response.data.errors)
           .flat()
@@ -69,7 +68,6 @@ const ForgotPasswordForm = ({ setUser }) => {
       setTimeout(() => navigate("/login"), 2000);
     } catch (error) {
       console.error(error);
-      // Handle ASP.NET Core Identity error format
       if (error.response?.data?.errors) {
         const errorMessages = Object.values(error.response.data.errors)
           .flat()
@@ -88,14 +86,26 @@ const ForgotPasswordForm = ({ setUser }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        className="fixed inset-0 w-full h-full object-cover z-[-1]"
+      >
+        <source src="/Cooking.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      {/* Header Section */}
       <motion.div
         className="z-10 flex items-center justify-center"
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <h1 className="text-7xl font-bold text-orange-400">App Chảo</h1>
+        <h1 className="text-7xl font-bold text-orange-400 ">App Chảo</h1>
         <img
           src="/favicon.png"
           alt="App Chảo Icon"
@@ -104,10 +114,10 @@ const ForgotPasswordForm = ({ setUser }) => {
       </motion.div>
 
       {/* Form Section */}
-      <div className="relative w-96 pt-3">
-        <div className="absolute inset-0 bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl"></div>
+      <div className="relative w-96 mb-[90px]">
+        <div className="absolute inset-0 bg-gray-800/50 backdrop-blur-md rounded-xl"></div>
         <motion.div
-          className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-8 border border-gray-700 w-96"
+          className="relative z-0 p-8 border border-gray-700 rounded-xl"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}

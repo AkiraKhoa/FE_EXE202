@@ -1,24 +1,47 @@
+import React, { useState, useEffect, Suspense } from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import DashboardPage from "./pages/DashboardPage";
-import UsersPage from "./pages/UsersPage";
-import RecipesPage from "./pages/RecipesPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import ProfilePage from "./pages/ProfilePage";
 import Sidebar from "./components/common/Sidebar";
-import LoginPage from "./pages/LoginPage";
-import ForgotPasswordForm from "./components/auth/ForgotPasswordForm";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
+import VideoBackgroundLayout from "./components/VideoBackgroundLayout";
+import LoadingSpinner from "./components/common/LoadingSpinner";
+
+// Lazy load components
+const DashboardPage = React.lazy(() => import("./pages/DashboardPage"));
+const UsersPage = React.lazy(() => import("./pages/UsersPage"));
+const RecipesPage = React.lazy(() => import("./pages/RecipesPage"));
+const NotificationsPage = React.lazy(() => import("./pages/NotificationsPage"));
+const ProfilePage = React.lazy(() => import("./pages/ProfilePage"));
+
+// Preload LoginPage and ForgotPasswordForm
+const preloadComponents = async () => {
+  try {
+    const [loginModule, forgotModule] = await Promise.all([
+      import("./pages/LoginPage"),
+      import("./components/auth/ForgotPasswordForm"),
+    ]);
+    return { LoginPage: loginModule.default, ForgotPasswordForm: forgotModule.default };
+  } catch (error) {
+    console.error("Preloading failed:", error);
+    return {};
+  }
+};
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [preloadedComponents, setPreloadedComponents] = useState({});
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const upId = localStorage.getItem("upId");
+
+    preloadComponents()
+      .then((components) => {
+        setPreloadedComponents(components);
+      })
+      .catch((error) => console.error("Preload error:", error));
 
     if (token) {
       try {
@@ -40,47 +63,110 @@ function App() {
     setLoading(false);
   }, []);
 
-  if (loading) return null;
+  if (loading) return <div className="text-white">Initializing...</div>;
+
+  // Use preloaded components
+  const LoginComponent = preloadedComponents.LoginPage || (() => <div>Loading Login...</div>);
+  const ForgotPasswordComponent = preloadedComponents.ForgotPasswordForm || (() => <div>Loading Forgot Password...</div>);
 
   return (
     <>
       <div className="flex h-screen bg-gray-900 text-gray-100 overflow-hidden">
         <div className="fixed inset-0 z-2">
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 opacity-80" />
-          <div className="absolute inset-0 backdrop-blur-sm" />
+          <div className="absolute inset-0 opacity-80" />
+          <div className="absolute inset-0" />
         </div>
 
         {user && <Sidebar role={user.role} setUser={setUser} />}
 
-        <div className="flex-1">
+        <div className="flex-1 relative z-10">
           <Routes>
             {!user ? (
               <>
-                <Route path="/login" element={<LoginPage setUser={setUser} />} />
+                <Route element={<VideoBackgroundLayout />}>
+                  <Route
+                    path="/login"
+                    element={<LoginComponent setUser={setUser} />}
+                  />
+                  <Route
+                    path="/forgot-password"
+                    element={<ForgotPasswordComponent />}
+                  />
+                </Route>
                 <Route path="*" element={<Navigate to="/login" />} />
-                <Route path="/forgot-password" element={<ForgotPasswordForm />} />
               </>
             ) : (
               <>
-                {/* Common routes for both roles */}
-                <Route element={<ProtectedRoute user={user} allowedRoles={["Admin", "Staff"]} />}>
-                  <Route path="/profile" element={<ProfilePage />} />
+                <Route
+                  element={
+                    <ProtectedRoute
+                      user={user}
+                      allowedRoles={["Admin", "Staff"]}
+                    />
+                  }
+                >
+                  <Route
+                    path="/profile"
+                    element={
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <ProfilePage />
+                      </Suspense>
+                    }
+                  />
                 </Route>
 
-                {/* Protect Dashboard: Only Admin can access */}
-                <Route element={<ProtectedRoute user={user} allowedRoles={["Admin"]} />}>
-                  <Route path="/" element={<DashboardPage />} />
-                  <Route path="/users" element={<UsersPage />} />
+                <Route
+                  element={
+                    <ProtectedRoute user={user} allowedRoles={["Admin"]} />
+                  }
+                >
+                  <Route
+                    path="/"
+                    element={
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <DashboardPage />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <UsersPage />
+                      </Suspense>
+                    }
+                  />
                 </Route>
 
-                {/* Protect Staff pages: Only Staff can access */}
-                <Route element={<ProtectedRoute user={user} allowedRoles={["Staff"]} />}>
-                  <Route path="/recipes" element={<RecipesPage />} />
-                  <Route path="/notifications" element={<NotificationsPage />} />
+                <Route
+                  element={
+                    <ProtectedRoute user={user} allowedRoles={["Staff"]} />
+                  }
+                >
+                  <Route
+                    path="/recipes"
+                    element={
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <RecipesPage />
+                      </Suspense>
+                    }
+                  />
+                  <Route
+                    path="/notifications"
+                    element={
+                      <Suspense fallback={<LoadingSpinner />}>
+                        <NotificationsPage />
+                      </Suspense>
+                    }
+                  />
                 </Route>
 
-                {/* Redirect unauthorized users to appropriate page */}
-                <Route path="*" element={<Navigate to={user.role === "Admin" ? "/" : "/recipes"} />} />
+                <Route
+                  path="*"
+                  element={
+                    <Navigate to={user.role === "Admin" ? "/" : "/recipes"} />
+                  }
+                />
               </>
             )}
           </Routes>

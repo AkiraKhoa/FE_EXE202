@@ -33,11 +33,9 @@ const LoginForm = ({ setUser }) => {
         const token = response.data.token;
         const upId = response.data.upId;
 
-        // Lưu token và upId, không lưu role
         localStorage.setItem("token", token);
         localStorage.setItem("upId", upId.toString());
 
-        // Giải mã token
         const decoded = jwtDecode(token);
         const role = decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"];
 
@@ -45,12 +43,10 @@ const LoginForm = ({ setUser }) => {
           throw new Error("Token không hợp lệ: thiếu thông tin vai trò");
         }
 
-        // Chỉ set user và navigate nếu role được phép
         if (role === "Admin" || role === "Staff") {
           setUser({ email: formData.email, role, upId });
           toast.success("Đăng nhập thành công!");
 
-          // Navigate dựa trên role
           if (role === "Admin") {
             navigate("/", { replace: true });
           } else if (role === "Staff") {
@@ -60,7 +56,7 @@ const LoginForm = ({ setUser }) => {
           clearLocalStorage();
           setError("Tài khoản của bạn không được phép truy cập.");
         }
-      } else {1
+      } else {
         setError("Thông tin đăng nhập không hợp lệ");
       }
     } catch (error) {
@@ -79,7 +75,6 @@ const LoginForm = ({ setUser }) => {
     }
   };
 
-  // Add a helper function to clear localStorage
   const clearLocalStorage = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -91,8 +86,19 @@ const LoginForm = ({ setUser }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
-      {/* Header Section - Completely separate from any blur effects */}
+    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        className="fixed inset-0 w-full h-full object-cover z-[-1] opacity-900/50"
+      >
+        <source src="/Cooking.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+
+      {/* Header Section */}
       <motion.div
         className="z-10 flex items-center justify-center"
         initial={{ opacity: 0, y: -30 }}
@@ -107,9 +113,9 @@ const LoginForm = ({ setUser }) => {
         />
       </motion.div>
 
-      {/* Form Section - With blur effect contained within */}
-      <div className="relative w-96 pt-3">
-        <div className="absolute inset-0 bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl"></div>
+      {/* Form Section */}
+      <div className="relative w-96 ">
+        <div className="absolute inset-0 bg-gray-800/50 backdrop-blur-md rounded-xl"></div>
         <motion.div
           className="relative z-0 p-8 border border-gray-700 rounded-xl"
           initial={{ opacity: 0, y: -20 }}
