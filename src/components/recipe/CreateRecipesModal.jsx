@@ -586,7 +586,7 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
             )}
           </motion.div>
 
-          // Pop-up for IngredientType
+          
           {showTypeModal && (
             <motion.div
               className="fixed inset-0 z-60 flex items-center justify-center pointer-events-none"
@@ -645,7 +645,7 @@ const CreateRecipesModal = ({ onClose, onSave }) => {
             </motion.div>
           )}
 
-          // Pop-up for Ingredient
+
           {showIngredientModal && (
             <motion.div
               className="fixed inset-0 z-70 flex items-center justify-center pointer-events-none"

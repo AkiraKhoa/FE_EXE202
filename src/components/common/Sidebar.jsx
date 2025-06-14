@@ -31,7 +31,7 @@ const Sidebar = ({ role, setUser }) => {
 
   return (
     <motion.div
-      className={`relative z-10 transition-all duration-300 ease-in-out flex-shrink-0 ${
+      className={`relative z-50 transition-all duration-300 ease-in-out flex-shrink-0 ${
         isSidebarOpen ? "w-64" : "w-16"
       }`}
       animate={{ width: isSidebarOpen ? 256 : 80 }}
