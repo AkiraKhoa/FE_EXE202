@@ -35,13 +35,14 @@ const NotificationsTable = () => {
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
-      setCurrentPage(1);
-      fetchNoti(searchTerm, 1);
+      fetchNoti(searchTerm, 1); // Fetch when Enter is pressed
     }
   };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
+    // Reset to first page but don't fetch immediately
+    setCurrentPage(1);
   };
 
   const handlePageChange = (newPage) => {
@@ -59,14 +60,6 @@ const NotificationsTable = () => {
         return;
       }
 
-      // For testing without API
-      // Comment this out when you have the real API
-      // setNotifications([]); // or some mock data
-      // setTotalCount(0);
-      // setTotalPages(1);
-      // setError(null);
-
-      // /* Uncomment when API is ready
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/Notifications`,
         {
@@ -80,22 +73,18 @@ const NotificationsTable = () => {
           },
         }
       );
+
+      // Update state with new data
       setNotifications(response.data.items || []);
       setTotalCount(response.data.totalCount || 0);
       setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
       setCurrentPage(page);
-      setError(null);
-      // */
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch data");
-      setNotifications([]); // Ensure notifications is at least an empty array
+      setNotifications([]);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSearch1 = (e) => {
-    setSearchTerm(e.target.value.toLowerCase());
   };
 
   const handleEdit = (notificationId) => {
@@ -220,7 +209,7 @@ const NotificationsTable = () => {
 
   return (
     <motion.div
-      className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700 min-h-screen"
+      className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
@@ -246,9 +235,9 @@ const NotificationsTable = () => {
             onKeyDown={handleKeyDown}
           />
           <Search
-            className="absolute left-3 top-2.5 text-gray-400"
+            className="absolute left-3 top-2.5 text-gray-400 cursor-pointer"
             size={18}
-            onClick={() => fetchNoti(searchTerm)}
+            onClick={() => fetchNoti(searchTerm, 1)} // Add click handler
           />
         </div>
       </div>
@@ -276,8 +265,8 @@ const NotificationsTable = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700 table-fixed">
+        <div className="mt-4"> {/* Remove height and overflow classes */}
+          <table className="min-w-full divide-y divide-gray-700">
             <thead>
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">

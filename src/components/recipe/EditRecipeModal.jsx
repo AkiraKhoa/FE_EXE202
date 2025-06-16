@@ -48,20 +48,36 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
           }
         );
 
-        // Map ingredients to include typeId and typeName (assuming API returns them)
+        // No need to map typeId/typeName anymore
         const cleanedIngredients = recipeResponse.data.ingredients.map((ing) => ({
-          typeId: ing.typeId || 0,
-          typeName: ing.typeName || "",
           ingredient: ing.ingredient,
           amount: String(ing.amount).split(" ")[0], // Extract numeric part
           defaultUnit: ing.defaultUnit,
         }));
 
         // Map steps to ensure stepNumber is correct
-        const cleanedSteps = (recipeResponse.data.steps || []).map((step, index) => ({
-          stepNumber: index + 1,
-          instruction: step.instruction || "",
-        }));
+        let cleanedSteps = [];
+        if (Array.isArray(recipeResponse.data.steps) && recipeResponse.data.steps.length > 0) {
+          cleanedSteps = recipeResponse.data.steps.map((step, index) => ({
+            stepNumber: index + 1,
+            instruction: step.instruction || "",
+          }));
+        } else if (typeof recipeResponse.data.recipeSteps === "string" && recipeResponse.data.recipeSteps.trim()) {
+          // Parse recipeSteps string (Markdown table)
+          cleanedSteps = recipeResponse.data.recipeSteps
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => line && /^\|/.test(line)) // Only lines that look like table rows
+            .map(line => {
+              // Remove leading/trailing pipes and split by |
+              const parts = line.replace(/^\|/, "").replace(/\|$/, "").split("|").map(s => s.trim());
+              return {
+                stepNumber: Number(parts[0]) || 1,
+                instruction: parts[1] || "",
+              };
+            })
+            .filter(step => step.instruction); // Remove empty instructions
+        }
 
         setRecipeData({
           recipeName: recipeResponse.data.recipeName || "",
@@ -73,12 +89,6 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
           instructionVideoLink: recipeResponse.data.instructionVideoLink || "",
           steps: cleanedSteps.length > 0 ? cleanedSteps : [{ stepNumber: 1, instruction: "" }],
         });
-
-        // Fetch ingredient types
-        const typesResponse = await axios.get(
-          `${import.meta.env.VITE_API_URL}/Ingredients/ingredient-types?page=1&pageSize=20`
-        );
-        setIngredientTypes(typesResponse.data.items || []);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch recipe details");
       } finally {
@@ -501,7 +511,7 @@ const EditRecipeModal = ({ recipeId, onClose, onSave }) => {
                         className="flex items-center gap-2 p-2 bg-gray-700 rounded-lg"
                       >
                         <div className="flex-1">
-                          <div className="text-sm text-gray-300">{ingredient.typeName || "Unknown Type"}</div>
+                          {/* <div className="text-sm text-gray-300">{ingredient.typeName || "Unknown Type"}</div> */}
                           <div className="text-white">{ingredient.ingredient}</div>
                         </div>
                         <input

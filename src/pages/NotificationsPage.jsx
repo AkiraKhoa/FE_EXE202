@@ -3,16 +3,15 @@ import NotificationsTable from "../components/nofitication/NotificationsTable";
 
 const NotificationsPage = () => {
     return (
-        <div className='flex-1 overflow-auto relative z-10'>
+        <div className='h-screen flex flex-col'>
             <Header title='Notifications' />
-
-            <main className='max-w-7xl mx-auto py-6 px-4 lg:px-8'>
-                {/* CRUD USERS */}
-                <NotificationsTable />
-
-            </main>
+            <div className='flex-1 overflow-y-auto'>
+                <div className='max-w-7xl mx-auto p-6'>
+                    <NotificationsTable />
+                </div>
+            </div>
         </div>
     );
 }
 
-export default NotificationsPage
+export default NotificationsPage;

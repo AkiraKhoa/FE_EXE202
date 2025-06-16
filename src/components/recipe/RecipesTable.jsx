@@ -75,13 +75,13 @@ const RecipesTable = () => {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(9);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
     fetchRecipes(searchTerm, currentPage);
-  }, [currentPage]);
+  }, [currentPage, searchTerm]);
 
   const clearError = () => {
     setTimeout(() => {
@@ -102,6 +102,10 @@ const RecipesTable = () => {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value.toLowerCase());
+    // Reset to first page when searching
+    setCurrentPage(1);
+    // Fetch results with new search term
+    fetchRecipes(e.target.value.toLowerCase(), 1);
   };
 
   const handlePageChange = (RecipePage) => {
@@ -119,14 +123,6 @@ const RecipesTable = () => {
         return;
       }
 
-      // For testing without API
-      // Comment this out when you have the real API
-      // setRecipes([]); // or some mock data
-      // setTotalCount(0);
-      // setTotalPages(1);
-      // setError(null);
-
-      // /* Uncomment when API is ready
       const response = await axios.get(
         `${import.meta.env.VITE_API}/Recipes`,
         {
@@ -140,13 +136,15 @@ const RecipesTable = () => {
           },
         }
       );
+      
+      // Update state with new data
       setRecipes(response.data.items || []);
       setTotalCount(response.data.totalCount || 0);
       setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
-      // */
+      
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch data");
-      setRecipes([]); // Ensure Recipes is at least an empty array
+      setRecipes([]);
     } finally {
       setLoading(false);
     }
@@ -267,7 +265,7 @@ const RecipesTable = () => {
 
   return (
     <motion.div
-      className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700 min-h-screen"
+      className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
@@ -325,9 +323,9 @@ const RecipesTable = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="w-full">
           <table className="min-w-full divide-y divide-gray-700 table-fixed">
-            <thead>
+            <thead className="bg-gray-800 border-b border-gray-700">
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/4">
                   Recipe Name
