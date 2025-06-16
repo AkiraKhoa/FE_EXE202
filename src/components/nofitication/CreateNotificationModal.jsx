@@ -113,121 +113,117 @@ const CreateNotificationModal = ({ onClose, onSave }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50"
+        className="fixed inset-0 flex items-center justify-center z-50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm" />
-        
-        {/* Modal container with centering */}
-        <div className="fixed inset-0 overflow-y-auto z-50">
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm" onClick={onClose} />
-            <motion.div
-              className="relative bg-gray-800 text-gray-100 rounded-xl p-6 w-[400px] shadow-2xl border border-gray-700"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 50, opacity: 0 }}
-              transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            >
-              <button
-                className="absolute top-3 right-3 text-gray-400 hover:text-white"
-                onClick={onClose}
-              >
-                <X size={22} />
-              </button>
-
-              <h2 className="text-xl font-semibold mb-5 text-white">
-                Create Notification
-              </h2>
-
-              {error && (
-                <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm flex justify-between items-center">
-                  {error}
-                  <button
-                    onClick={() => setError(null)}
-                    className="ml-2 text-red-200 hover:text-red-100"
-                  >
-                    ×
-                  </button>
-                </div>
-              )}
-
-              <label className="block text-gray-300 mb-1">Title</label>
-              <input
-                type="text"
-                name="title"
-                value={notificationData.title}
-                onChange={handleChange}
-                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter notification title"
-              />
-
-              <label className="block text-gray-300 mb-1">Content</label>
-              <textarea
-                name="body"
-                value={notificationData.body || ""}
-                onChange={handleChange}
-                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter notification content"
-              ></textarea>
-
-              <label className="block text-gray-300 mt-4 mb-1">Type</label>
-              <div className="w-full p-2 rounded bg-gray-700 text-gray-400 border border-gray-600">
-                Global
-              </div>
-
-              <label className="block text-gray-300 mb-1">Scheduled Option</label>
-              <select
-                name="scheduleOption"
-                value={scheduleOption}
-                onChange={handleScheduleOptionChange}
-                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-2"
-              >
-                <option value="immediate">Send Immediately</option>
-                <option value="schedule">Schedule for Later</option>
-              </select>
-
-              {scheduleOption === "schedule" && (
-                <>
-                  <label className="block text-gray-300 mb-1">Scheduled Time</label>
-                  <input
-                    type="datetime-local"
-                    name="scheduledTime"
-                    value={notificationData.scheduledTime || ""}
-                    onChange={handleChange}
-                    className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-4"
-                    required
-                  />
-                </>
-              )}
-
-              {error && (
-                <motion.div
-                  className="mt-4 text-red-400 text-sm text-center"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {error}
-                </motion.div>
-              )}
-
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className={`mt-6 w-full p-2 rounded text-white font-semibold transition-all duration-200 ${isSubmitting
-                    ? "bg-blue-800 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-500"
-                  }`}
-              >
-                {isSubmitting ? "Creating..." : "Create Notification"}
-              </button>
-            </motion.div>
-          </div>
+        {/* Semi-transparent overlay that only covers the table */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
         </div>
+
+        <motion.div
+          className="bg-gray-800 text-gray-100 rounded-xl p-6 w-[400px] shadow-2xl border border-gray-700 relative z-10"
+          initial={{ y: 20, opacity: 0, scale: 0.95 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 20, opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          <button
+            className="absolute top-3 right-3 text-gray-400 hover:text-white"
+            onClick={onClose}
+          >
+            <X size={22} />
+          </button>
+
+          <h2 className="text-xl font-semibold mb-5 text-white">
+            Create Notification
+          </h2>
+
+          {error && (
+            <div className="mb-4 p-2 bg-red-900 bg-opacity-50 border border-red-700 rounded text-red-200 text-sm flex justify-between items-center">
+              {error}
+              <button
+                onClick={() => setError(null)}
+                className="ml-2 text-red-200 hover:text-red-100"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          <label className="block text-gray-300 mb-1">Title</label>
+          <input
+            type="text"
+            name="title"
+            value={notificationData.title}
+            onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter notification title"
+          />
+
+          <label className="block text-gray-300 mb-1">Content</label>
+          <textarea
+            name="body"
+            value={notificationData.body || ""}
+            onChange={handleChange}
+            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter notification content"
+          ></textarea>
+
+          <label className="block text-gray-300 mt-4 mb-1">Type</label>
+          <div className="w-full p-2 rounded bg-gray-700 text-gray-400 border border-gray-600">
+            Global
+          </div>
+
+          <label className="block text-gray-300 mb-1">Scheduled Option</label>
+          <select
+            name="scheduleOption"
+            value={scheduleOption}
+            onChange={handleScheduleOptionChange}
+            className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-2"
+          >
+            <option value="immediate">Send Immediately</option>
+            <option value="schedule">Schedule for Later</option>
+          </select>
+
+          {scheduleOption === "schedule" && (
+            <>
+              <label className="block text-gray-300 mb-1">Scheduled Time</label>
+              <input
+                type="datetime-local"
+                name="scheduledTime"
+                value={notificationData.scheduledTime || ""}
+                onChange={handleChange}
+                className="w-full p-2 rounded bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 mb-4"
+                required
+              />
+            </>
+          )}
+
+          {error && (
+            <motion.div
+              className="mt-4 text-red-400 text-sm text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {error}
+            </motion.div>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className={`mt-6 w-full p-2 rounded text-white font-semibold transition-all duration-200 ${isSubmitting
+                ? "bg-blue-800 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-500"
+              }`}
+          >
+            {isSubmitting ? "Creating..." : "Create Notification"}
+          </button>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );

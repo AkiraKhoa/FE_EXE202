@@ -261,11 +261,6 @@ const DashboardPage = () => {
     }
   };
 
-  // Toggle theme
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   const chartComponents = {
     subscription: <SubscriptionRatioChart />,
     peakAccess: <PeakAccessTimeChart />,
@@ -296,16 +291,9 @@ const DashboardPage = () => {
           }}
           style={{ position: "absolute", width: "100%", height: "100%", zIndex: 0 }}
         />
-
-        {/* Header with Theme Toggle */}
-        <Header title="Dashboard">
-          <button
-            onClick={toggleTheme}
-            className="ml-4 px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600"
-          >
-            {theme === "dark" ? "Light Mode" : "Dark Mode"}
-          </button>
-        </Header>
+        
+        {/* Header */}
+        <Header title="Dashboard"></Header>
 
         <main className="max-w-7xl mx-auto py-6 px-4 lg:px-8 relative z-10">
           {error && <div className="text-red-500 text-center mb-4">{error}</div>}

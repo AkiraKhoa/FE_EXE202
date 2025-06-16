@@ -21,7 +21,7 @@ const NotificationsTable = () => {
 
   useEffect(() => {
     fetchNoti(searchTerm, currentPage);
-  }, [currentPage]);
+  }, [currentPage]); // Only depend on currentPage
 
   const clearError = () => {
     setTimeout(() => {
@@ -33,26 +33,33 @@ const NotificationsTable = () => {
     setError(null);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      fetchNoti(searchTerm, 1); // Fetch when Enter is pressed
-    }
+  // Add debounce function
+  const debounce = (func, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
   };
 
+  // Modify the search related functions
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value.toLowerCase());
-    // Reset to first page but don't fetch immediately
-    setCurrentPage(1);
+    const value = e.target.value.toLowerCase();
+    setSearchTerm(value);
+    debouncedSearch(value);
   };
 
-  const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > totalPages) return;
-    setCurrentPage(newPage);
-  };
+  // Create debounced search function
+  const debouncedSearch = debounce((searchValue) => {
+    setCurrentPage(1);
+    fetchNoti(searchValue, 1);
+  }, 300); // 300ms delay
 
   const fetchNoti = async (search = "", page = 1, size = pageSize) => {
     try {
       setLoading(true);
+      setError(null); // Clear any existing errors
+
       const token = localStorage.getItem("token");
       if (!token) {
         setError("No authentication token found");
@@ -68,17 +75,17 @@ const NotificationsTable = () => {
           },
           params: {
             searchTerm: search,
-            page: page,
+            page,
             pageSize: size,
           },
         }
       );
 
-      // Update state with new data
-      setNotifications(response.data.items || []);
-      setTotalCount(response.data.totalCount || 0);
-      setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
-      setCurrentPage(page);
+      if (response.data) {
+        setNotifications(response.data.items || []);
+        setTotalCount(response.data.totalCount || 0);
+        setTotalPages(Math.ceil((response.data.totalCount || 0) / size));
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch data");
       setNotifications([]);
@@ -207,107 +214,105 @@ const NotificationsTable = () => {
     }
   };
 
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
   return (
-    <motion.div
-      className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-semibold text-gray-100">Notifications</h2>
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
-            onClick={() => setShowCreateModal(true)}
-          >
-            <span className="mr-1">+</span>
-            Create Notifications
-          </button>
+    <div className="relative min-h-[600px]">
+      <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold text-gray-100">
+              Notifications
+            </h2>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <span className="mr-1">+</span>
+              Create Notifications
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search notifications..."
+              className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+          </div>
         </div>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search notifications..."
-            className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-          />
-          <Search
-            className="absolute left-3 top-2.5 text-gray-400 cursor-pointer"
-            size={18}
-            onClick={() => fetchNoti(searchTerm, 1)} // Add click handler
-          />
-        </div>
-      </div>
 
-      {error && (
-        <motion.div
-          className="mb-4 p-3 bg-red-900 bg-opacity-40 border border-red-800 rounded text-red-200"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.0 }}
-        >
-          <span>Error: {error} </span>
-          <button
-            onClick={dismissError}
-            className="text-red-200 hover:text-red-100 focus:outline-none absolute right-10"
+        {error && (
+          <motion.div
+            className="mb-4 p-3 bg-red-900 bg-opacity-40 border border-red-800 rounded text-red-200"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.0 }}
           >
-            X
-          </button>
-        </motion.div>
-      )}
+            <span>Error: {error} </span>
+            <button
+              onClick={dismissError}
+              className="text-red-200 hover:text-red-100 focus:outline-none absolute right-10"
+            >
+              X
+            </button>
+          </motion.div>
+        )}
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : (
-        <div className="mt-4"> {/* Remove height and overflow classes */}
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead>
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
-                  Title
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-2/6">
-                  Content
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[12%]">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[18%]">
-                  Created At
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[18%]">
-                  Scheduled At
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[12%]">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {!notifications || notifications.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead>
                 <tr>
-                  <td
-                    colSpan="6"
-                    className="px-4 py-4 text-center text-gray-400"
-                  >
-                    {loading ? "Loading..." : "No notifications found"}
-                  </td>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-1/6">
+                    Title
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-2/6">
+                    Content
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[12%]">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[18%]">
+                    Created At
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[18%]">
+                    Scheduled At
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider w-[12%]">
+                    Actions
+                  </th>
                 </tr>
-              ) : (
-                notifications
-                  .filter(
-                    (item) =>
-                      !searchTerm ||
-                      item?.body?.toLowerCase().includes(searchTerm) ||
-                      item?.title?.toLowerCase().includes(searchTerm)
-                  )
-                  .map((item) => (
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {!notifications || notifications.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="6"
+                      className="px-4 py-8 text-center text-gray-400"
+                    >
+                      {loading ? "Loading..." : "No notifications found"}
+                    </td>
+                  </tr>
+                ) : (
+                  notifications.map((item) => (
                     <motion.tr
                       key={item.id}
                       initial={{ opacity: 0 }}
@@ -374,65 +379,72 @@ const NotificationsTable = () => {
                       </td>
                     </motion.tr>
                   ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-      <div className="flex justify-between items-center mt-6">
-        <div className="text-sm text-gray-400">
-          Showing {(currentPage - 1) * pageSize + 1} to{" "}
-          {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{" "}
-          notifications
-        </div>
-
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === 1
-                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
-          >
-            Previous
-          </button>
-
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === totalPages
-                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
-          >
-            Next
-          </button>
-        </div>
+        {notifications.length > 0 && (
+          <div className="flex justify-between items-center mt-6">
+            <div className="text-sm text-gray-400">
+              Showing {((currentPage - 1) * pageSize) + 1} to{" "}
+              {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{" "}
+              notifications
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  currentPage === 1
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-600 text-white hover:bg-gray-500"
+                }`}
+              >
+                Previous
+              </button>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage >= totalPages}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  currentPage >= totalPages
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-600 text-white hover:bg-gray-500"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Edit Notification Modal */}
-      {editNotificationId && (
-        <EditNotificationModal
-          notificationId={editNotificationId}
-          onClose={() => setEditNotificationId(null)}
-          onSave={handleSave}
-          allNotis={notifications}
-        />
-      )}
+      {/* Portal container for modals */}
+      <div className="fixed inset-0 pointer-events-none">
+        {editNotificationId && (
+          <div className="absolute inset-0 pointer-events-auto">
+            <EditNotificationModal
+              notificationId={editNotificationId}
+              onClose={() => setEditNotificationId(null)}
+              onSave={handleSave}
+              allNotis={notifications}
+            />
+          </div>
+        )}
 
-      {/* Create Notification Modal */}
-      {showCreateModal && (
-        <CreateNotificationModal
-          onClose={() => setShowCreateModal(false)}
-          onSave={handleCreate}
-        />
-      )}
-    </motion.div>
+        {showCreateModal && (
+          <div className="absolute inset-0 pointer-events-auto">
+            <CreateNotificationModal
+              onClose={() => setShowCreateModal(false)}
+              onSave={handleCreate}
+            />
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
 export default NotificationsTable;
+

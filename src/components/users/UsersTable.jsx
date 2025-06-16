@@ -47,6 +47,7 @@ const UsersTable = () => {
       
       // Check if the response has items property
       if (userData && userData.items) {
+        // Update the mapping in fetchUsers function
         const mappedUsers = userData.items.map((user) => ({
           Id: user.upId,
           Fullname: user.fullName || "N/A",
@@ -54,7 +55,10 @@ const UsersTable = () => {
           Role: user.role,
           Gender: user.gender || "N/A",
           Age: user.age || "N/A",
-          SubscriptionStatus: user.subscriptionId ? "Active" : "Inactive",
+          SubscriptionStatus: user.subcriptionId === 1 ? "None" : 
+                             user.subcriptionId === 2 ? "Basic" : 
+                             user.subcriptionId === 3 ? "Premium" : "None",
+          SubscriptionId: user.subcriptionId // Keep the original ID for reference
         }));
 
         setUsers(mappedUsers);
@@ -200,196 +204,202 @@ const UsersTable = () => {
   };
 
   return (
-    <motion.div
-      className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700 min-h-screen"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-xl font-semibold text-gray-100">Manage Users</h2>
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
-            onClick={() => setShowCreateModal(true)}
-          >
-            <span className="mr-1">+</span>
-            Create User
-          </button>
+    <div className="relative">
+      <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg rounded-xl p-6 border border-gray-700">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold text-gray-100">Users</h2>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
+              onClick={() => setShowCreateModal(true)}
+            >
+              <span className="mr-1">+</span>
+              Create User
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search users..."
+              className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              onKeyDown={handleKeyDown}
+            />
+            <Search
+              className="absolute left-3 top-2.5 text-gray-400 cursor-pointer"
+              size={18}
+              onClick={() => fetchUsers(searchTerm, 1)}
+            />
+          </div>
         </div>
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search users..."
-            className="bg-gray-700 text-white placeholder-gray-400 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            onKeyDown={handleKeyDown}
-          />
-          <Search
-            className="absolute left-3 top-2.5 text-gray-400 cursor-pointer"
-            size={18}
-            onClick={() => fetchUsers(searchTerm)}
-          />
-        </div>
-      </div>
 
-      {error && (
-        <div className="mb-4 p-3 bg-red-900 bg-opacity-40 border border-red-800 rounded text-red-200">
-          Error: {error}
-        </div>
-      )}
+        {error && (
+          <div className="mb-4 p-3 bg-red-900 bg-opacity-40 border border-red-800 rounded text-red-200">
+            {error}
+          </div>
+        )}
 
-      {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-700">
-            <thead>
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
-                  Username
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
-                  Subscription
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {users.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-700">
+              <thead>
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="px-6 py-4 text-center text-gray-400"
-                  >
-                    No users found
-                  </td>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                    Username
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                    Role
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                    Subscription
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-medium text-gray-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ) : (
-                users.map((user) => (
-                  <motion.tr
-                    key={user.Id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-100">
-                        {user.Fullname}
-                      </div>
+              </thead>
+              <tbody className="divide-y divide-gray-700">
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="px-4 py-8 text-center text-gray-400">
+                      {loading ? "Loading..." : "No users found"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-300">{user.Email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-sm leading-5 font-semibold rounded-full ${
-                          user.Role === "Admin"
-                            ? "bg-purple-800 text-purple-100"
-                            : user.Role === "Staff"
-                            ? "bg-blue-800 text-blue-100"
-                            : user.Role === "Member"
-                            ? "bg-yellow-500 text-yellow-100"
-                            : user.Role === "User"
-                            ? "bg-green-800 text-green-100"
-                            : "bg-gray-800 text-gray-100"
-                        }`}
-                      >
-                        {user.Role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-sm leading-5 font-semibold rounded-full ${
-                          user.SubscriptionStatus === "Upgrade"
-                            ? "bg-green-800 text-green-100"
-                            : user.SubscriptionStatus === "Free"
-                            ? "bg-blue-800 text-blue-100"
-                            : user.SubscriptionStatus === "None"
-                            ? "bg-black-800 text-black-100"
-                            : "bg-red-800 text-red-100"
-                        }`}
-                      >
-                        {user.SubscriptionStatus}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                      <button
-                        className="text-indigo-400 hover:text-indigo-300 mr-2"
-                        onClick={() => handleView(user.Id)}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="text-red-400 hover:text-red-300"
-                        onClick={() => handleDelete(user.Id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </motion.tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <div className="flex justify-between items-center mt-6">
-        <div className="text-sm text-gray-400">
-          Showing {(currentPage - 1) * pageSize + 1} to{" "}
-          {Math.min(currentPage * pageSize, totalCount)} of {totalCount} users
-        </div>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === 1
-                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 rounded-lg ${
-              currentPage === totalPages
-                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-            }`}
-          >
-            Next
-          </button>
-        </div>
+                  </tr>
+                ) : (
+                  users.map((user) => (
+                    <motion.tr
+                      key={user.Id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-100">
+                          {user.Fullname}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-300">{user.Email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 inline-flex text-sm leading-5 font-semibold rounded-full ${
+                            user.Role === "Admin"
+                              ? "bg-purple-800 text-purple-100"
+                              : user.Role === "Staff"
+                              ? "bg-blue-800 text-blue-100"
+                              : user.Role === "Member"
+                              ? "bg-yellow-500 text-yellow-100"
+                              : user.Role === "User"
+                              ? "bg-green-800 text-green-100"
+                              : "bg-gray-800 text-gray-100"
+                          }`}
+                        >
+                          {user.Role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span
+                          className={`px-2 inline-flex text-sm leading-5 font-semibold rounded-full ${
+                            user.SubscriptionId === 1
+                              ? "bg-gray-700 text-white" // None subscription
+                              : user.SubscriptionId === 2
+                              ? "bg-blue-600 text-white" // Basic subscription
+                              : user.SubscriptionId === 3
+                              ? "bg-yellow-600 text-white" // Premium subscription
+                              : "bg-gray-700 text-white" // Default fallback
+                          }`}
+                        >
+                          {user.SubscriptionStatus}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        <button
+                          className="text-indigo-400 hover:text-indigo-300 mr-2"
+                          onClick={() => handleView(user.Id)}
+                        >
+                          View
+                        </button>
+                        <button
+                          className="text-red-400 hover:text-red-300"
+                          onClick={() => handleDelete(user.Id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </motion.tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {users.length > 0 && (
+          <div className="flex justify-between items-center mt-6">
+            <div className="text-sm text-gray-400">
+              Showing {((currentPage - 1) * pageSize) + 1} to{" "}
+              {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{" "}
+              users
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  currentPage === 1
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-600 text-white hover:bg-gray-500"
+                }`}
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={`px-4 py-2 text-sm font-medium rounded-md ${
+                  currentPage === totalPages
+                    ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                    : "bg-gray-600 text-white hover:bg-gray-500"
+                }`}
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {viewUserId && (
-        <ViewUserProfile
-          id={viewUserId}
-          onClose={() => setViewUserId(null)}
-          allUsers={users}
-        />
-      )}
-      {showCreateModal && (
-        <CreateUserModal
-          onClose={() => setShowCreateModal(false)}
-          onSave={handleCreate}
-        />
-      )}
-    </motion.div>
+      {/* Modals */}
+      <div className="fixed inset-0 pointer-events-none">
+        {viewUserId && (
+          <div className="absolute inset-0 pointer-events-auto">
+            <ViewUserProfile
+              id={viewUserId}
+              onClose={() => setViewUserId(null)}
+              allUsers={users}
+            />
+          </div>
+        )}
+
+        {showCreateModal && (
+          <div className="absolute inset-0 pointer-events-auto">
+            <CreateUserModal
+              onClose={() => setShowCreateModal(false)}
+              onSave={handleCreate}
+            />
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

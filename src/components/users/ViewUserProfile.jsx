@@ -113,17 +113,21 @@ const ViewUserProfile = ({ id, onClose, allUsers }) => {
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50 pt-5"
+        className="fixed inset-0 flex items-center justify-center z-50"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+        </div>
+
         <motion.div
-          className="bg-gray-800 text-gray-100 rounded-xl p-6 w-[440px] shadow-2xl border border-gray-700 relative mb-24 max-h-[90vh] overflow-y-auto"
-          initial={{ y: 80, opacity: 0, scale: 0.9 }}
-          animate={{ y: 30, opacity: 1, scale: 1 }}
-          exit={{ y: 50, opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="bg-gray-800 text-gray-100 rounded-xl p-6 w-[440px] shadow-2xl border border-gray-700 relative z-10 max-h-[90vh] overflow-y-auto"
+          initial={{ y: 20, opacity: 0, scale: 0.95 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 20, opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <button
             className="absolute top-3 right-3 text-gray-400 hover:text-white"
